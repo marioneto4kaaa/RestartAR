@@ -1,0 +1,44 @@
+##     ##    ###    ########  ####  #######  ##    ## ######## ########  #######  ##        ##    ##    ###
+###   ###   ## ##   ##     ##  ##  ##     ## ###   ## ##          ##    ##     ## ##    ##  ##   ##    ## ##
+#### ####  ##   ##  ##     ##  ##  ##     ## ####  ## ##          ##    ##     ## ##    ##  ##  ##    ##   ##
+## ### ## ##     ## ########   ##  ##     ## ## ## ## ######      ##    ##     ## ##    ##  #####    ##     ##
+##     ## ######### ##   ##    ##  ##     ## ##  #### ##          ##    ##     ## ######### ##  ##   #########
+##     ## ##     ## ##    ##   ##  ##     ## ##   ### ##          ##    ##     ##       ##  ##   ##  ##     ##
+##     ## ##     ## ##     ## ####  #######  ##    ## ########    ##     #######        ##  ##    ## ##     ##
+
+# Discord: marioneto4ka
+# Telegram: marioneto4kaa
+
+# Language selection (available: "en", "ru")
+language: "en"
+
+# Notification method for restart
+# Possible values:
+# - "chat" (only in chat)
+# - "actionbar" (only in Action Bar)
+# - "bossbar" (only in Boss Bar)
+# Example: ["chat"] - only in chat
+# Example: ["bossbar", "actionbar"] - BossBar and Action Bar
+notification-type: ["actionbar"]
+
+# BossBar settings
+bossbar-color: "RED"  # Possible values: BLUE, GREEN, PINK, PURPLE, RED, WHITE, YELLOW
+
+
+# Countdown announcement times (in seconds)
+countdown-announcements: [60, 30, 10, 5, 4, 3, 2, 1]
+
+# Default restart time (if not specified in the command)
+default-restart-time: 60
+
+# Enable or disable the scheduled restarts based on date/time
+enable-scheduled-restarts: false
+
+# Dates and times for automatic restart (format: yyyy-MM-dd HH:mm:ss or just HH:mm:ss)
+restart-dates:
+  # Example with full date and time
+  - "2025-03-08 03:00:00"
+  - "2025-03-09 15:00:00"
+  # Example with just time
+  - "03:00:00"
+  - "15:00:00"

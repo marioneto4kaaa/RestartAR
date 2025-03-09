@@ -1,0 +1,20 @@
+name: RestartAR
+version: '1.3.0'
+main: me.marioneto4ka.restartar.RestartAR
+api-version: '1.21'
+commands:
+  autorestart:
+    description: Starts the countdown for server restart.
+    usage: /autorestart [time]
+    permission: restartar.restart
+  ar:
+    description: Manages the server restart.
+    usage: /ar <cancel|reload>
+    permission: restartar.admin
+permissions:
+  restartar.restart:
+    description: Allows using the /autorestart command.
+    default: op
+  restartar.admin:
+    description: Allows canceling the restart and reloading the config.
+    default: op
