@@ -10,35 +10,64 @@
 # Telegram: marioneto4kaa
 
 # Language selection (available: "en", "ru")
+# Choose the language for the plugin's messages.
 language: "en"
 
 # Notification method for restart
+# Specify how the restart countdown will be displayed to players.
 # Possible values:
 # - "chat" (only in chat)
 # - "actionbar" (only in Action Bar)
 # - "bossbar" (only in Boss Bar)
-# Example: ["chat"] - only in chat
-# Example: ["bossbar", "actionbar"] - BossBar and Action Bar
+# - "title" (only in Title)
+# Example: ["chat"] - will show only in chat
+# Example: ["bossbar", "actionbar", "title"] - will show in BossBar, ActionBar, and Title
 notification-type: ["actionbar"]
 
 # BossBar settings
-bossbar-color: "RED"  # Possible values: BLUE, GREEN, PINK, PURPLE, RED, WHITE, YELLOW
-
+# Configure the color of the BossBar if "bossbar" is selected for notifications.
+# Possible values: BLUE, GREEN, PINK, PURPLE, RED, WHITE, YELLOW
+bossbar-color: "RED"
 
 # Countdown announcement times (in seconds)
+# This is the list of times (in seconds) when an announcement will be made during the countdown to restart.
 countdown-announcements: [60, 30, 10, 5, 4, 3, 2, 1]
 
+# If true, the title will update every second instead of using the specified title countdown times.
+title-update-every-second: false
+
+# Countdown announcement times for title (if "title" is enabled)
+# Define specific times when the countdown will be shown in the title (if title notifications are enabled).
+title-countdown-announcements: [60, 40, 30, 20, 10, 5, 4, 3, 2, 1]
+
 # Default restart time (if not specified in the command)
+# This is the default time (in seconds) the server will restart after the command is run if no specific time is given.
 default-restart-time: 60
 
-# Enable or disable the scheduled restarts based on date/time
+# Whether to execute pre-restart commands
+# If set to true, the pre-restart commands will be executed before restarting the server.
+execute-pre-restart-commands: false
+
+# Time before restart (in seconds) to execute pre-restart commands
+# This specifies the time (in seconds) before the restart at which the pre-restart commands should be executed.
+pre-restart-execute-time: 0
+
+# Commands to execute before restart
+# List of commands that will be executed before the server restarts. For example, you might want to save all data.
+pre-restart-commands:
+  - "save-all"
+  - "say The server is restarting!"
+
+# Enable or disable scheduled restarts based on date/time
+# Set this to true if you want to enable automatic restarts at specific times.
 enable-scheduled-restarts: false
 
 # Dates and times for automatic restart (format: yyyy-MM-dd HH:mm:ss or just HH:mm:ss)
+# List of dates and times when the server should automatically restart. Use full date-time or just the time.
 restart-dates:
   # Example with full date and time
   - "2025-03-08 03:00:00"
   - "2025-03-09 15:00:00"
-  # Example with just time
+  # Example with just time (no date)
   - "03:00:00"
   - "15:00:00"

@@ -135,7 +135,6 @@ public final class RestartAR extends JavaPlugin {
             bossBarColor = BarColor.valueOf(colorName);
         } catch (IllegalArgumentException e) {
             bossBarColor = BarColor.RED;
-            getLogger().warning("Invalid BossBar color in config.yml! Using RED as default.");
         }
 
         if (notificationTypes.contains("bossbar")) {
@@ -163,6 +162,31 @@ public final class RestartAR extends JavaPlugin {
                     return;
                 }
 
+                int preRestartExecuteTime = getConfig().getInt("pre-restart-execute-time", 0);
+
+                if (timeLeft <= preRestartExecuteTime && timeLeft > 0) {
+                    Bukkit.broadcastMessage(getMessage("messages.restart-done"));
+
+                    boolean executePreRestartCommands = getConfig().getBoolean("execute-pre-restart-commands", true);
+
+                    if (executePreRestartCommands) {
+                        List<String> preRestartCommands = getConfig().getStringList("pre-restart-commands");
+                        for (String command : preRestartCommands) {
+                            Bukkit.dispatchCommand(Bukkit.getConsoleSender(), command);
+                        }
+                    }
+
+                    if (bossBar != null) {
+                        bossBar.removeAll();
+                        bossBar = null;
+                    }
+
+                    Bukkit.shutdown();
+                    cancel();
+                    return;
+                }
+
+
                 if (notificationTypes.contains("chat") && countdownTimes.contains(timeLeft)) {
                     Bukkit.broadcastMessage(getMessage("messages.restart-message", timeLeft));
                 }
@@ -173,6 +197,19 @@ public final class RestartAR extends JavaPlugin {
                         player.spigot().sendMessage(ChatMessageType.ACTION_BAR, TextComponent.fromLegacyText(actionBarMessage));
                     }
                 }
+
+                List<Integer> titleCountdownTimes = getConfig().getIntegerList("title-countdown-announcements");
+                boolean titleEverySecond = getConfig().getBoolean("title-update-every-second", false);
+
+                if (notificationTypes.contains("title") && (titleEverySecond || titleCountdownTimes.contains(timeLeft))) {
+                    for (Player player : Bukkit.getOnlinePlayers()) {
+                        String titleMessage = getMessage("messages.title-restart-message", timeLeft);
+                        String subtitleMessage = getMessage("messages.subtitle-restart-message", timeLeft);
+                        player.sendTitle(titleMessage, subtitleMessage, 10, 40, 10);
+                    }
+                }
+
+
 
                 if (notificationTypes.contains("bossbar") && bossBar != null) {
                     bossBar.setTitle(getMessage("messages.bossbar-restart-message", timeLeft));

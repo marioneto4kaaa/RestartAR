@@ -14,3 +14,5 @@ messages:
   restart-scheduled: "§e⏳ A scheduled restart has been set for %date% at %time%!"
   restart-time-only-scheduled: "§e⏳ A daily restart has been scheduled for %time%!"
   restart-date-time: "§e⏳ Scheduled restart on %date% at %time%."
+  title-restart-message: "§4⚠ Restarting in %time% seconds!"
+  subtitle-restart-message: "§e⏳ Save your progress now!"
