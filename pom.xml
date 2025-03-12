@@ -6,7 +6,7 @@
 
   <groupId>me.marioneto4ka</groupId>
   <artifactId>RestartAR</artifactId>
-  <version>1.5.0</version>
+  <version>1.6.0-Discord</version>
   <packaging>jar</packaging>
 
   <name>TimeReload</name>
@@ -75,6 +75,11 @@
           <artifactId>bstats-bukkit</artifactId>
           <version>3.0.2</version>
           <scope>compile</scope>
+      </dependency>
+      <dependency>
+          <groupId>net.dv8tion</groupId>
+          <artifactId>JDA</artifactId>
+          <version>5.0.0-beta.14</version>
       </dependency>
   </dependencies>
 </project>

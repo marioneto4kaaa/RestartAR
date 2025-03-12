@@ -4,7 +4,7 @@
   <groupId>me.marioneto4ka</groupId>
   <artifactId>RestartAR</artifactId>
   <name>TimeReload</name>
-  <version>1.5.0</version>
+  <version>1.6.0-Discord</version>
   <build>
     <resources>
       <resource>

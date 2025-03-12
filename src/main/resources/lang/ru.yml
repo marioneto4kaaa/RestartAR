@@ -16,3 +16,5 @@ messages:
   restart-date-time: "§e⏳ Запланирована перезагрузка на %date% в %time%."
   title-restart-message: "§4⚠ Перезапуск через %time% секунд!"
   subtitle-restart-message: "§e⏳ Сохраните свой прогресс!"
+  discord-restart-message: "⚠️ Сервер перезапустится через %time% секунд!"
+  discord-restart-done: "✅ Сервер был успешно перезапущен!"

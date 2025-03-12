@@ -16,3 +16,5 @@ messages:
   restart-date-time: "§e⏳ Scheduled restart on %date% at %time%."
   title-restart-message: "§4⚠ Restarting in %time% seconds!"
   subtitle-restart-message: "§e⏳ Save your progress now!"
+  discord-restart-message: "⚠️ The server will restart in %time% seconds!"
+  discord-restart-done: "✅ The server has been successfully restarted!"
