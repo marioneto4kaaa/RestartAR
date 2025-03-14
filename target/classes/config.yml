@@ -73,6 +73,16 @@ restart-dates:
   - "15:00:00"
 
 # Discord bot settings
-discord-enabled: false
-discord-bot-token: "YOUR_BOT_TOKEN_HERE"
-discord-channel-id: "YOUR_CHANNEL_ID_HERE"
+discord-mode: "none"  # "bot" - use a bot, "webhook" - use a webhook, "none" - disable Discord messages
+
+# Bot settings (used if discord-mode = "bot")
+discord-bot-token: "YOUR_BOT_TOKEN_HERE"  # Your Discord bot token
+discord-channel-id: "YOUR_CHANNEL_ID_HERE"  # ID of the channel where messages will be sent
+
+# Webhook settings (used if discord-mode = "webhook")
+discord-webhook-url: "https://discord.com/api/webhooks/YOUR_WEBHOOK_URL"  # Your Discord webhook URL
+discord-avatar-url: "https://your.avatar.url"
+discord-thumbnail-url: "https://your.thumbnail.url"
+discord-footer-icon-url: "https://your.footer.icon.url"
+discord-username: "YourCustomUsername"
+discord-footer-text: "YourCustomFooterText"

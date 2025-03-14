@@ -23,11 +23,16 @@ import org.bstats.bukkit.Metrics;
 
 import javax.security.auth.login.LoginException;
 import java.io.File;
+import java.io.OutputStream;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Locale;
+import java.util.logging.Level;
 
 public final class RestartAR extends JavaPlugin {
     private int taskId = -1;
@@ -73,8 +78,9 @@ public final class RestartAR extends JavaPlugin {
     }
 
     private void setupDiscordBot() {
-        if (!getConfig().getBoolean("discord-enabled", true)) {
-            getLogger().info("Discord bot is disabled in the config.");
+        String mode = getConfig().getString("discord-mode", "none").toLowerCase();
+        if (!"bot".equals(mode)) {
+            getLogger().info("Discord bot is not enabled (mode: " + mode + ").");
             return;
         }
 
@@ -90,8 +96,11 @@ public final class RestartAR extends JavaPlugin {
         getLogger().info("Discord bot connected successfully.");
     }
 
-    private void sendDiscordMessage(String message) {
-        if (jda == null) return;
+    private void sendDiscordBotMessage(String message) {
+        if (jda == null) {
+            getLogger().warning("JDA is not initialized!");
+            return;
+        }
         TextChannel channel = jda.getTextChannelById(discordChannelId);
         if (channel != null) {
             channel.sendMessage(message).queue();
@@ -100,6 +109,72 @@ public final class RestartAR extends JavaPlugin {
         }
     }
 
+
+    public void sendDiscordMessage(String message) {
+        String mode = getConfig().getString("discord-mode", "none").toLowerCase();
+
+        switch (mode) {
+            case "webhook":
+                sendDiscordWebhookMessage(message);
+                break;
+            case "bot":
+                sendDiscordBotMessage(message);
+                break;
+            case "none":
+                getLogger().info("Discord messages are disabled (mode: none). No message sent.");
+                break;
+            default:
+                getLogger().warning("Invalid 'discord-mode' in config.yml! Use 'bot', 'webhook', or 'none'.");
+        }
+    }
+
+    private void sendDiscordWebhookMessage(String restartTime) {
+        String webhookUrl = getConfig().getString("discord-webhook-url");
+        String avatarUrl = getConfig().getString("discord-avatar-url", "default_avatar_url");
+        String thumbnailUrl = getConfig().getString("discord-thumbnail-url", avatarUrl);
+        String footerIconUrl = getConfig().getString("discord-footer-icon-url", avatarUrl);
+        String username = getConfig().getString("discord-username", "ExampleName");
+        String footerText = getConfig().getString("discord-footer-text", "ExampleName.net");
+
+        if (webhookUrl == null || webhookUrl.isEmpty()) {
+            getLogger().warning("Webhook URL is missing in config.yml!");
+            return;
+        }
+
+        try {
+            URL url = new URL(webhookUrl);
+            HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+            connection.setRequestMethod("POST");
+            connection.setDoOutput(true);
+            connection.setRequestProperty("Content-Type", "application/json");
+
+            String jsonPayload = "{" +
+                    "\"username\": \"" + username + "\"," +
+                    "\"avatar_url\": \"" + avatarUrl + "\"," +
+                    "\"embeds\": [{" +
+                    "    \"title\": \"Warning!\"," +
+                    "    \"description\": \"🔄 **The server will restart at**\\n" +
+                    "    " + restartTime + "\\n\\n" +
+                    "    Please save your progress.\"," +
+                    "    \"color\": 16711680," +
+                    "    \"thumbnail\": { \"url\": \"" + thumbnailUrl + "\" }," +
+                    "    \"footer\": { \"text\": \"" + footerText + "\", \"icon_url\": \"" + footerIconUrl + "\" }" +
+                    "}]" +
+                    "}";
+
+            try (OutputStream os = connection.getOutputStream()) {
+                byte[] input = jsonPayload.getBytes(StandardCharsets.UTF_8);
+                os.write(input, 0, input.length);
+            }
+
+            int responseCode = connection.getResponseCode();
+            if (responseCode != 204) {
+                getLogger().log(Level.WARNING, "Failed to send webhook message! Response code: " + responseCode);
+            }
+        } catch (Exception e) {
+            getLogger().log(Level.SEVERE, "Error sending webhook message!", e);
+        }
+    }
 
     private class RestartCommand implements CommandExecutor {
         @Override
