@@ -185,10 +185,12 @@ public final class RestartAR extends JavaPlugin {
             }
 
             int time = getConfig().getInt("default-restart-time", 60);
+
             if (args.length > 0) {
+                String timeArg = args[0].toLowerCase();
                 try {
-                    time = Integer.parseInt(args[0]);
-                } catch (NumberFormatException e) {
+                    time = parseTimeArgument(timeArg);
+                } catch (IllegalArgumentException e) {
                     sender.sendMessage(getMessage("messages.invalid-time"));
                     return true;
                 }
@@ -199,7 +201,30 @@ public final class RestartAR extends JavaPlugin {
             sendDiscordMessage(getMessage("messages.discord-restart-message", time));
             return true;
         }
+
+        private int parseTimeArgument(String input) {
+            if (input.matches("\\d+[smhd]?")) {
+                int value = Integer.parseInt(input.replaceAll("[^0-9]", ""));
+                char unit = input.charAt(input.length() - 1);
+
+                switch (unit) {
+                    case 's':
+                        return value;
+                    case 'm':
+                        return value * 60;
+                    case 'h':
+                        return value * 3600;
+                    case 'd':
+                        return value * 86400;
+                    default:
+                        return value;
+                }
+            } else {
+                throw new IllegalArgumentException("Invalid time format.");
+            }
+        }
     }
+
 
     private class ARCommand implements CommandExecutor {
         @Override
