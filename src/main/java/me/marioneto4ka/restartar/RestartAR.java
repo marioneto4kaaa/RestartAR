@@ -1,9 +1,11 @@
 package me.marioneto4ka.restartar;
 
-import net.dv8tion.jda.api.JDA;
-import net.dv8tion.jda.api.JDABuilder;
-import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
-import net.dv8tion.jda.api.exceptions.InteractionFailureException;
+import com.jeff_media.updatechecker.UpdateCheckSource;
+import com.jeff_media.updatechecker.UpdateChecker;
+import me.marioneto4ka.restartar.Function.AdminFeedbackNotifier;
+import me.marioneto4ka.restartar.Function.DiscordNotifier;
+import me.marioneto4ka.restartar.Function.HelpMessageSender;
+import me.marioneto4ka.restartar.Function.ScheduledRestartHandler;
 import net.md_5.bungee.api.ChatMessageType;
 import net.md_5.bungee.api.chat.TextComponent;
 import org.bukkit.Bukkit;
@@ -14,49 +16,60 @@ import org.bukkit.boss.BossBar;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
+import org.bukkit.command.TabCompleter;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
+import org.bukkit.event.EventHandler;
+import org.bukkit.event.Listener;
+import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bstats.bukkit.Metrics;
 
-import javax.security.auth.login.LoginException;
 import java.io.File;
-import java.io.OutputStream;
-import java.net.HttpURLConnection;
-import java.net.URL;
-import java.nio.charset.StandardCharsets;
-import java.time.LocalDateTime;
-import java.time.LocalTime;
-import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
-import java.util.logging.Level;
 
-public final class RestartAR extends JavaPlugin {
+public final class RestartAR extends JavaPlugin implements Listener {
     private int taskId = -1;
     private FileConfiguration langConfig;
     private BossBar bossBar;
-    private JDA jda;
-    private String discordChannelId;
+    private DiscordNotifier discordNotifier;
+    private static final String SPIGOT_RESOURCE_ID = "122574";
+    private AdminFeedbackNotifier feedbackNotifier;
 
     @Override
     public void onEnable() {
         saveDefaultConfig();
         loadLanguage();
-        setupDiscordBot();
+        discordNotifier = new DiscordNotifier(this);
+        discordNotifier.setupBot();
+        this.feedbackNotifier = new AdminFeedbackNotifier(getConfig());
 
         boolean scheduledRestartsEnabled = getConfig().getBoolean("enable-scheduled-restarts", false);
         if (scheduledRestartsEnabled) {
             List<String> restartDates = getConfig().getStringList("restart-dates");
             handleScheduledRestarts(restartDates);
         }
-
-        getCommand("autorestart").setExecutor(new RestartCommand());
+        Bukkit.getPluginManager().registerEvents(this, this);
+        ARCommand arCommand = new ARCommand();
         getCommand("ar").setExecutor(new ARCommand());
+        getCommand("ar").setTabCompleter(arCommand);
         int pluginId = 25011;
         Metrics metrics = new Metrics(this, pluginId);
+
+        UpdateChecker updateChecker = new UpdateChecker(this, UpdateCheckSource.SPIGOT, SPIGOT_RESOURCE_ID);
+
+        updateChecker.onSuccess((senders, latestVersion) -> {
+            getLogger().info("The latest version of the plugin is: " + latestVersion);
+        }).onFail((senders, exception) -> {
+            getLogger().warning("Failed to fetch the latest plugin version: " + exception.getMessage());
+        });
+
+        updateChecker.checkNow();
     }
 
     @Override
@@ -64,6 +77,14 @@ public final class RestartAR extends JavaPlugin {
         if (taskId != -1) {
             Bukkit.getScheduler().cancelTask(taskId);
         }
+    }
+
+    @EventHandler
+    public void onPlayerJoin(PlayerJoinEvent event) {
+        Player player = event.getPlayer();
+        Bukkit.getScheduler().runTaskLater(this, () -> {
+            feedbackNotifier.send(player);
+        }, 60L);
     }
 
     private void loadLanguage() {
@@ -77,128 +98,162 @@ public final class RestartAR extends JavaPlugin {
         langConfig = YamlConfiguration.loadConfiguration(langFile);
     }
 
-    private void setupDiscordBot() {
-        String mode = getConfig().getString("discord-mode", "none").toLowerCase();
-        if (!"bot".equals(mode)) {
-            getLogger().info("Discord bot is not enabled (mode: " + mode + ").");
-            return;
-        }
+    private void checkForUpdates(CommandSender sender) {
+        UpdateChecker updateChecker = new UpdateChecker(this, UpdateCheckSource.SPIGOT, SPIGOT_RESOURCE_ID);
 
-        String token = getConfig().getString("discord-bot-token");
-        discordChannelId = getConfig().getString("discord-channel-id");
+        updateChecker.onSuccess((senders, latestVersion) -> {
+            new HelpMessageSender(this).send(sender, latestVersion);
+        }).onFail((senders, exception) -> {
+            sender.sendMessage(getMessage("messages.update-check-failed") + exception.getMessage());
+        });
 
-        if (token == null || discordChannelId == null) {
-            getLogger().warning("Discord bot token or channel ID is missing in config.yml!");
-            return;
-        }
-
-        jda = JDABuilder.createDefault(token).build();
-        getLogger().info("Discord bot connected successfully.");
+        updateChecker.checkNow();
     }
 
-    private void sendDiscordBotMessage(String message) {
-        if (jda == null) {
-            getLogger().warning("JDA is not initialized!");
-            return;
-        }
-        TextChannel channel = jda.getTextChannelById(discordChannelId);
-        if (channel != null) {
-            channel.sendMessage(message).queue();
-        } else {
-            getLogger().warning("Discord channel not found!");
-        }
+    private void handleScheduledRestarts(List<String> restartDates) {
+        new ScheduledRestartHandler(this, this::getMessage).handleScheduledRestarts(restartDates);
+    }
+// Выше не трогай
+    public void sendToDiscord(String msg) {
+        discordNotifier.sendDiscordMessage(msg);
     }
 
+    private class ARCommand implements CommandExecutor, TabCompleter {
 
-    public void sendDiscordMessage(String message) {
-        String mode = getConfig().getString("discord-mode", "none").toLowerCase();
+        private static final int SPIGOT_RESOURCE_ID = 122574;
 
-        switch (mode) {
-            case "webhook":
-                sendDiscordWebhookMessage(message);
-                break;
-            case "bot":
-                sendDiscordBotMessage(message);
-                break;
-            case "none":
-                getLogger().info("Discord messages are disabled (mode: none). No message sent.");
-                break;
-            default:
-                getLogger().warning("Invalid 'discord-mode' in config.yml! Use 'bot', 'webhook', or 'none'.");
-        }
-    }
-
-    private void sendDiscordWebhookMessage(String restartTime) {
-        String webhookUrl = getConfig().getString("discord-webhook-url");
-        String avatarUrl = getConfig().getString("discord-avatar-url", "default_avatar_url");
-        String thumbnailUrl = getConfig().getString("discord-thumbnail-url", avatarUrl);
-        String footerIconUrl = getConfig().getString("discord-footer-icon-url", avatarUrl);
-        String username = getConfig().getString("discord-username", "ExampleName");
-        String footerText = getConfig().getString("discord-footer-text", "ExampleName.net");
-
-        if (webhookUrl == null || webhookUrl.isEmpty()) {
-            getLogger().warning("Webhook URL is missing in config.yml!");
-            return;
-        }
-
-        try {
-            URL url = new URL(webhookUrl);
-            HttpURLConnection connection = (HttpURLConnection) url.openConnection();
-            connection.setRequestMethod("POST");
-            connection.setDoOutput(true);
-            connection.setRequestProperty("Content-Type", "application/json");
-
-            String jsonPayload = "{" +
-                    "\"username\": \"" + username + "\"," +
-                    "\"avatar_url\": \"" + avatarUrl + "\"," +
-                    "\"embeds\": [{" +
-                    "    \"title\": \"Warning!\"," +
-                    "    \"description\": \"🔄 **The server will restart at**\\n" +
-                    "    " + restartTime + "\\n\\n" +
-                    "    Please save your progress.\"," +
-                    "    \"color\": 16711680," +
-                    "    \"thumbnail\": { \"url\": \"" + thumbnailUrl + "\" }," +
-                    "    \"footer\": { \"text\": \"" + footerText + "\", \"icon_url\": \"" + footerIconUrl + "\" }" +
-                    "}]" +
-                    "}";
-
-            try (OutputStream os = connection.getOutputStream()) {
-                byte[] input = jsonPayload.getBytes(StandardCharsets.UTF_8);
-                os.write(input, 0, input.length);
-            }
-
-            int responseCode = connection.getResponseCode();
-            if (responseCode != 204) {
-                getLogger().log(Level.WARNING, "Failed to send webhook message! Response code: " + responseCode);
-            }
-        } catch (Exception e) {
-            getLogger().log(Level.SEVERE, "Error sending webhook message!", e);
-        }
-    }
-
-    private class RestartCommand implements CommandExecutor {
         @Override
-        public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
-            if (!sender.hasPermission("timereload.restart")) {
-                sender.sendMessage(getMessage("messages.no-permission"));
-                return true;
-            }
+        public List<String> onTabComplete(CommandSender sender, Command command, String alias, String[] args) {
+            List<String> completions = new ArrayList<>();
 
-            int time = getConfig().getInt("default-restart-time", 60);
-
-            if (args.length > 0) {
-                String timeArg = args[0].toLowerCase();
-                try {
-                    time = parseTimeArgument(timeArg);
-                } catch (IllegalArgumentException e) {
-                    sender.sendMessage(getMessage("messages.invalid-time"));
-                    return true;
+            if (args.length == 1) {
+                List<String> subCommands = Arrays.asList("restart", "cancel", "reload", "help", "disablefeedback", "scheduled", "now");
+                for (String sub : subCommands) {
+                    if (sub.toLowerCase().startsWith(args[0].toLowerCase())) {
+                        completions.add(sub);
+                    }
+                }
+            } else if (args.length == 2 && args[0].equalsIgnoreCase("restart")) {
+                List<String> timeOptions = Arrays.asList("60", "30s", "5m", "1h");
+                for (String option : timeOptions) {
+                    if (option.startsWith(args[1].toLowerCase())) {
+                        completions.add(option);
+                    }
                 }
             }
 
-            startCountdown(time);
-            sender.sendMessage(getMessage("messages.restart-started", time));
-            sendDiscordMessage(getMessage("messages.discord-restart-message", time));
+            return completions;
+        }
+
+        @Override
+        public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
+            if (args.length == 0) {
+                sender.sendMessage(getMessage("messages.usage-ar"));
+                return true;
+            }
+
+            switch (args[0].toLowerCase()) {
+                case "restart":
+                    if (!sender.hasPermission("restartar.admin")) {
+                        sender.sendMessage(getMessage("messages.no-permission"));
+                        return true;
+                    }
+
+                    int time = getConfig().getInt("default-restart-time", 60);
+                    if (args.length > 1) {
+                        try {
+                            time = parseTimeArgument(args[1]);
+                        } catch (IllegalArgumentException e) {
+                            sender.sendMessage(getMessage("messages.invalid-time"));
+                            return true;
+                        }
+                    }
+
+                    startCountdown(time);
+                    sender.sendMessage(getMessage("messages.restart-started", time));
+                    discordNotifier.sendDiscordMessage(getMessage("messages.discord-restart-message", time));
+                    break;
+
+                case "cancel":
+                    if (taskId != -1) {
+                        Bukkit.getScheduler().cancelTask(taskId);
+                        taskId = -1;
+
+                        if (bossBar != null) {
+                            bossBar.removeAll();
+                            bossBar = null;
+                        }
+
+                        sender.sendMessage(getMessage("messages.restart-cancelled"));
+                    } else {
+                        sender.sendMessage(getMessage("messages.no-active-restart"));
+                    }
+                    break;
+
+                case "reload":
+                    reloadConfig();
+                    sender.sendMessage(getMessage("messages.config-reloaded"));
+                    break;
+
+                case "help":
+                    checkForUpdates(sender);
+                    break;
+
+                case "disablefeedback":
+                    if (sender instanceof Player && sender.hasPermission("restartar.admin")) {
+                        boolean feedbackNotification = getConfig().getBoolean("admin-feedback-notification", true);
+
+                        if (!feedbackNotification) {
+                            String message = getConfig().getString("language", "en").equals("ru") ?
+                                    "§cУведомления для администраторов уже отключены." :
+                                    "§cAdmin feedback notification is already disabled.";
+                            sender.sendMessage(message);
+                            return true;
+                        }
+
+                        RestartAR plugin = RestartAR.this;
+                        plugin.getConfig().set("admin-feedback-notification", false);
+                        plugin.saveConfig();
+
+                        String successMessage = getConfig().getString("language", "en").equals("ru") ?
+                                "§aУведомления для администраторов были отключены." :
+                                "§aAdmin feedback notification has been disabled.";
+                        sender.sendMessage(successMessage);
+                    } else {
+                        String noPermissionMessage = getConfig().getString("language", "en").equals("ru") ?
+                                "§cУ вас нет прав для выполнения этой команды." :
+                                "§cYou don't have permission to do that.";
+                        sender.sendMessage(noPermissionMessage);
+                    }
+                    return true;
+
+                case "scheduled":
+                    showScheduledRestarts(sender);
+                    break;
+
+                case "now":
+                    if (!sender.hasPermission("restartar.admin")) {
+                        sender.sendMessage(getMessage("messages.no-permission"));
+                        return true;
+                    }
+
+                    String message = getMessage("messages.restart-now", 0, sender.getName());
+                    sender.sendMessage(message);
+
+                    String discordMessage = getMessage("messages.discord-restart-now", 0, sender.getName());
+                    discordNotifier.sendDiscordMessage(discordMessage);
+
+                    Bukkit.getScheduler().runTask(RestartAR.this, () -> {
+                        Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "save-all");
+                        Bukkit.shutdown();
+                    });
+                    break;
+
+
+                default:
+                    sender.sendMessage(getMessage("messages.usage-ar"));
+                    break;
+            }
             return true;
         }
 
@@ -225,41 +280,40 @@ public final class RestartAR extends JavaPlugin {
         }
     }
 
+    private void showScheduledRestarts(CommandSender sender) {
+        List<String> restartDates = getConfig().getStringList("restart-dates");
 
-    private class ARCommand implements CommandExecutor {
-        @Override
-        public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
-            if (args.length == 0) {
-                sender.sendMessage(getMessage("messages.usage-ar"));
-                return true;
+        List<String> datedRestarts = new ArrayList<>();
+        List<String> dailyRestarts = new ArrayList<>();
+
+        for (String entry : restartDates) {
+            if (entry.contains("-")) {
+                datedRestarts.add(entry);
+            } else {
+                dailyRestarts.add(entry);
             }
+        }
 
-            switch (args[0].toLowerCase()) {
-                case "cancel":
-                    if (taskId != -1) {
-                        Bukkit.getScheduler().cancelTask(taskId);
-                        taskId = -1;
+        if (datedRestarts.isEmpty() && dailyRestarts.isEmpty()) {
+            sender.sendMessage("§cNo scheduled restarts at the moment.");
+            return;
+        }
 
-                        if (bossBar != null) {
-                            bossBar.removeAll();
-                            bossBar = null;
-                        }
+        sender.sendMessage("§e§lScheduled Restarts:");
 
-                        sender.sendMessage(getMessage("messages.restart-cancelled"));
-                    } else {
-                        sender.sendMessage(getMessage("messages.no-active-restart"));
-                    }
-                    break;
-
-                case "reload":
-                    reloadConfig();
-                    sender.sendMessage(getMessage("messages.config-reloaded"));
-                    break;
-                default:
-                    sender.sendMessage(getMessage("messages.usage-ar"));
-                    break;
+        if (!datedRestarts.isEmpty()) {
+            sender.sendMessage("§6One-time restarts:");
+            for (String restart : datedRestarts) {
+                sender.sendMessage("  §7- §f" + restart);
             }
-            return true;
+        }
+
+        if (!dailyRestarts.isEmpty()) {
+            sender.sendMessage("§6Daily restarts:");
+            for (String restart : dailyRestarts) {
+
+    sender.sendMessage("  §7- §f" + restart);
+            }
         }
     }
 
@@ -291,7 +345,7 @@ public final class RestartAR extends JavaPlugin {
             public void run() {
                 if (timeLeft <= 0) {
                     Bukkit.broadcastMessage(getMessage("messages.restart-done"));
-                    sendDiscordMessage(getMessage("messages.discord-restart-done"));
+                    discordNotifier.sendDiscordMessage(getMessage("messages.discord-restart-done"));
                     if (bossBar != null) {
                         bossBar.removeAll();
                         bossBar = null;
@@ -325,7 +379,6 @@ public final class RestartAR extends JavaPlugin {
                     return;
                 }
 
-
                 if (notificationTypes.contains("chat") && countdownTimes.contains(timeLeft)) {
                     Bukkit.broadcastMessage(getMessage("messages.restart-message", timeLeft));
                 }
@@ -348,8 +401,6 @@ public final class RestartAR extends JavaPlugin {
                     }
                 }
 
-
-
                 if (notificationTypes.contains("bossbar") && bossBar != null) {
                     bossBar.setTitle(getMessage("messages.bossbar-restart-message", timeLeft));
                     bossBar.setProgress((double) timeLeft / seconds);
@@ -360,48 +411,15 @@ public final class RestartAR extends JavaPlugin {
         }.runTaskTimer(this, 0L, 20L).getTaskId();
     }
 
-    private void handleScheduledRestarts(List<String> restartDates) {
-        Bukkit.getScheduler().runTaskTimer(this, () -> {
-            String currentDateTime = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
-            String currentTime = LocalTime.now().format(DateTimeFormatter.ofPattern("HH:mm:ss"));
-            int countdownTime = getConfig().getInt("default-restart-time", 60);
-
-            for (String restartDate : restartDates) {
-                if (restartDate.contains("-")) {
-                    try {
-                        LocalDateTime scheduledDateTime = LocalDateTime.parse(restartDate, DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
-                        LocalDateTime countdownStart = scheduledDateTime.minusSeconds(countdownTime);
-
-                        if (currentDateTime.equals(countdownStart.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")))) {
-                            Bukkit.broadcastMessage(getMessage("messages.scheduled-restart", countdownTime));
-                            startCountdown(countdownTime);
-                        }
-                    } catch (Exception e) {
-                        getLogger().warning("Invalid scheduled date format: " + restartDate);
-                    }
-                } else {
-                    try {
-                        LocalTime scheduledTime = LocalTime.parse(restartDate, DateTimeFormatter.ofPattern("HH:mm:ss"));
-                        LocalTime countdownStart = scheduledTime.minusSeconds(countdownTime);
-
-                        if (currentTime.equals(countdownStart.format(DateTimeFormatter.ofPattern("HH:mm:ss")))) {
-                            Bukkit.broadcastMessage(getMessage("messages.scheduled-restart", countdownTime));
-                            startCountdown(countdownTime);
-                        }
-                    } catch (Exception e) {
-                        getLogger().warning("Invalid scheduled time format: " + restartDate);
-                    }
-                }
-            }
-        }, 20L, 20L);
-    }
-
-
     public String getMessage(String path) {
         return langConfig.getString(path, "§c[Error] Message is missing in the config!");
     }
 
     public String getMessage(String path, int time) {
         return getMessage(path).replace("%time%", String.valueOf(time));
+    }
+
+    public String getMessage(String path, int time, String executor) {
+        return getMessage(path, time).replace("%executor%", executor);
     }
 }

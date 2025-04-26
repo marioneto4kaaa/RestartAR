@@ -3,14 +3,9 @@ version: '${project.version}'
 main: me.marioneto4ka.restartar.RestartAR
 api-version: '1.21'
 commands:
-  autorestart:
-    usage: /autorestart [time]
-    permission: restartar.restart
   ar:
-    usage: /ar <cancel|reload>
+    usage: /ar <restart [time]|cancel|reload|help>
     permission: restartar.admin
 permissions:
-  restartar.restart:
-    default: op
   restartar.admin:
     default: op

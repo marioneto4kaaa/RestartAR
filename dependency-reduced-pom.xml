@@ -3,8 +3,8 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>me.marioneto4ka</groupId>
   <artifactId>RestartAR</artifactId>
-  <name>TimeReload</name>
-  <version>1.8.0</version>
+  <name>RestartAR</name>
+  <version>1.9.0</version>
   <build>
     <resources>
       <resource>
@@ -30,6 +30,10 @@
               <pattern>org.bstats</pattern>
               <shadedPattern>me.marioneto4ka.bettervanilla.bstats</shadedPattern>
             </relocation>
+            <relocation>
+              <pattern>com.jeff_media.updatechecker</pattern>
+              <shadedPattern>me.marioneto4ka.libs.updatechecker</shadedPattern>
+            </relocation>
           </relocations>
         </configuration>
       </plugin>
@@ -47,6 +51,10 @@
     <repository>
       <id>bstats-repo</id>
       <url>https://repo.bstats.org/repository/maven-releases/</url>
+    </repository>
+    <repository>
+      <id>jeff-media-public</id>
+      <url>https://repo.jeff-media.com/public/</url>
     </repository>
   </repositories>
   <dependencies>

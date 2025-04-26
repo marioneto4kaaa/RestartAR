@@ -1,3 +1,5 @@
+# %time% - Time in the format "HH:mm".
+# %executor% - Replaced with the name of the player who executed the command.
 messages:
   restart-message: "§6⚠ The server will restart in §c%time% §6seconds!"
   restart-started: "§e⏳ Countdown to restart started! Time: §c%time% §esec."
@@ -6,15 +8,13 @@ messages:
   usage-ar: "§eUsage: /ar <cancel | reload>"
   no-permission: "§4🚫 You do not have permission to use this command!"
   no-active-restart: "§c❗ No scheduled restart at the moment!"
-  only-player: "§c❗ Only a player can use this command"
   config-reloaded: "§a✅ Config successfully reloaded!"
   actionbar-restart-message: "§e⏳ Restart in §c%time% §esec!"
   bossbar-restart-message: "Restarting in %time% seconds."
   scheduled-restart: "⚠️ The server will restart in %time% seconds!"
-  restart-scheduled: "§e⏳ A scheduled restart has been set for %date% at %time%!"
-  restart-time-only-scheduled: "§e⏳ A daily restart has been scheduled for %time%!"
-  restart-date-time: "§e⏳ Scheduled restart on %date% at %time%."
   title-restart-message: "§4⚠ Restarting in %time% seconds!"
   subtitle-restart-message: "§e⏳ Save your progress now!"
   discord-restart-message: "⚠️ The server will restart in %time% seconds!"
   discord-restart-done: "✅ The server has been successfully restarted!"
+  restart-now: "§cServer restart initiated immediately by %executor%!"
+  discord-restart-now: "**Server is restarting immediately!** Triggered by `%executor%`"
