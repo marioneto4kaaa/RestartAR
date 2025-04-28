@@ -245,7 +245,11 @@ public final class RestartAR extends JavaPlugin implements Listener {
 
                     Bukkit.getScheduler().runTask(RestartAR.this, () -> {
                         Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "save-all");
-                        Bukkit.shutdown();
+                        if(getConfig().getBoolean("restart-instead-of-stop")) {
+                             Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "restart");
+                        } else {
+                            Bukkit.shutdown();
+                        }
                     });
                     break;
 
@@ -350,7 +354,11 @@ public final class RestartAR extends JavaPlugin implements Listener {
                         bossBar.removeAll();
                         bossBar = null;
                     }
-                    Bukkit.shutdown();
+                    if(getConfig().getBoolean("restart-instead-of-stop")) {
+                        Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "restart");
+                    } else {
+                        Bukkit.shutdown();
+                    }
                     cancel();
                     return;
                 }
