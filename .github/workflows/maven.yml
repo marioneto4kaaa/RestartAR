@@ -1,0 +1,36 @@
+name: Java CI with Maven
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Git checkout
+        uses: actions/checkout@v4.2.2
+
+      - name: Set up JDK
+        uses: actions/setup-java@v4.7.1
+        with:
+          java-version: '17'
+          distribution: temurin
+          cache: maven
+
+      - name: Build with Maven
+        run: mvn -B package --file pom.xml
+
+      - name: Copy artifacts
+        run: cp target/CreativeHeads.jar .
+
+      - name: Upload bundle
+        uses: actions/upload-artifact@v4.6.2
+        with:
+          name: Bundle
+          path: |
+            CreativeHeads.jar
+            LICENSE.txt
