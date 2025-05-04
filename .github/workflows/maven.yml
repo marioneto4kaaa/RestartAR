@@ -21,12 +21,17 @@ jobs:
           distribution: temurin
           cache: maven
 
+      - name: Clear target folder
+        run: rm -r target
+
       - name: Build with Maven
         run: mvn -B package --file pom.xml
 
       - name: Copy artifacts
         run: |
           JAR_FILE=$(find target -name "*.jar" -type f | head -n 1)
+          echo "JAR_FILE=$JAR_FILE" >> $GITHUB_ENV
+          echo "$JAR_FILE"
           cp "$JAR_FILE" ./RestartAR.jar
 
       - name: Upload bundle
