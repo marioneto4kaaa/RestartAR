@@ -29,9 +29,9 @@ jobs:
 
       - name: Copy artifacts
         run: |
-          JAR_FILE=$(find target -name "*.jar" -type f | head -n 2)
+          JAR_FILE=$(find target -name "*.jar" -type f | head -n 2 | sed -n '2p')
           echo "$JAR_FILE"
-          JAR_OUT=$(echo "$JAR_FILE" | sed -E 's/^.{16}//')
+          JAR_OUT=$(echo "$JAR_FILE" | sed -E 's/^.{7}//')
           echo "$JAR_OUT"
           echo "JAR_OUT=$JAR_OUT" >> $GITHUB_ENV
           cp "$JAR_FILE" "./$JAR_OUT"
