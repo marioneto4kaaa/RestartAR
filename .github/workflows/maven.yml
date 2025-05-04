@@ -30,12 +30,14 @@ jobs:
       - name: Copy artifacts
         run: |
           JAR_FILE=$(find target -name "*.jar" -type f | head -n 1)
-          echo "JAR_FILE=$JAR_FILE" >> $GITHUB_ENV
           echo "$JAR_FILE"
-          cp "$JAR_FILE" ./RestartAR.jar
+          JAR_OUT=$(echo "$JAR_FILE" | sed -E 's/^.{16}//')
+          echo "$JAR_OUT"
+          echo "JAR_OUT=$JAR_OUT" >> $GITHUB_ENV
+          cp "$JAR_FILE" "./$JAR_OUT"
 
       - name: Upload bundle
         uses: actions/upload-artifact@v4.6.2
         with:
           name: RestartAR-build
-          path: RestartAR.jar
+          path: ${{ env.JAR_OUT }}
