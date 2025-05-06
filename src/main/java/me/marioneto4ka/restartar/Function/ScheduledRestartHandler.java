@@ -14,7 +14,7 @@ import java.util.function.BiFunction;
 public class ScheduledRestartHandler {
 
     private final JavaPlugin plugin;
-    private final Function<String, String> getMessage;
+    private final BiFunction<String, Integer, String> getMessage;
 
     public ScheduledRestartHandler(JavaPlugin plugin, BiFunction<String, Integer, String> getMessage) {
         this.plugin = plugin;
