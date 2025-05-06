@@ -7,18 +7,12 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
-import java.util.function.Function;
-import java.util.function.BiFunction;
-
 
 public class ScheduledRestartHandler {
-
     private final JavaPlugin plugin;
-    private final BiFunction<String, Integer, String> getMessage;
 
-    public ScheduledRestartHandler(JavaPlugin plugin, BiFunction<String, Integer, String> getMessage) {
+    public ScheduledRestartHandler(JavaPlugin plugin) {
         this.plugin = plugin;
-        this.getMessage = getMessage;
     }
 
     public void handleScheduledRestarts(List<String> restartDates) {
@@ -34,7 +28,7 @@ public class ScheduledRestartHandler {
                         LocalDateTime countdownStart = scheduledDateTime.minusSeconds(countdownTime);
 
                         if (currentDateTime.equals(countdownStart.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")))) {
-                            Bukkit.broadcastMessage(getMessage.apply("messages.scheduled-restart"));
+                            Bukkit.broadcastMessage(plugin.getMessage("messages.scheduled-restart"));
                             startCountdown(countdownTime);
                         }
                     } catch (Exception e) {
@@ -46,7 +40,7 @@ public class ScheduledRestartHandler {
                         LocalTime countdownStart = scheduledTime.minusSeconds(countdownTime);
 
                         if (currentTime.equals(countdownStart.format(DateTimeFormatter.ofPattern("HH:mm:ss")))) {
-                            Bukkit.broadcastMessage(getMessage.apply("messages.scheduled-restart"));
+                            Bukkit.broadcastMessage(getMessage("messages.scheduled-restart"));
                             startCountdown(countdownTime);
                         }
                     } catch (Exception e) {
@@ -64,10 +58,10 @@ public class ScheduledRestartHandler {
             @Override
             public void run() {
                 if (timeLeft <= 0) {
-                    Bukkit.broadcastMessage(getMessage.apply("messages.restart-started"));
+                    Bukkit.broadcastMessage(getMessage("messages.restart-started"));
                     Bukkit.getServer().shutdown();
                 } else {
-                    Bukkit.broadcastMessage(getMessage.apply("messages.restart-message", timeLeft));
+                    Bukkit.broadcastMessage(getMessage("messages.restart-message", timeLeft));
                     timeLeft--;
                 }
             }
