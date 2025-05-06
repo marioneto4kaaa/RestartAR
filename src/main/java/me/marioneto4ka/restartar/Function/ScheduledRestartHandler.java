@@ -1,22 +1,19 @@
 package me.marioneto4ka.restartar.Function;
 
 import org.bukkit.Bukkit;
-import org.bukkit.plugin.java.JavaPlugin;
+
+import me.marioneto4ka.restartar.RestartAR;
 
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
-import java.util.function.Function;
 
 public class ScheduledRestartHandler {
+    private final RestartAR plugin;
 
-    private final JavaPlugin plugin;
-    private final Function<String, String> getMessage;
-
-    public ScheduledRestartHandler(JavaPlugin plugin, Function<String, String> getMessage) {
+    public ScheduledRestartHandler(RestartAR plugin) {
         this.plugin = plugin;
-        this.getMessage = getMessage;
     }
 
     public void handleScheduledRestarts(List<String> restartDates) {
@@ -32,7 +29,7 @@ public class ScheduledRestartHandler {
                         LocalDateTime countdownStart = scheduledDateTime.minusSeconds(countdownTime);
 
                         if (currentDateTime.equals(countdownStart.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")))) {
-                            Bukkit.broadcastMessage(getMessage.apply("messages.scheduled-restart"));
+                            Bukkit.broadcastMessage(plugin.getMessage("messages.scheduled-restart"));
                             startCountdown(countdownTime);
                         }
                     } catch (Exception e) {
@@ -44,7 +41,7 @@ public class ScheduledRestartHandler {
                         LocalTime countdownStart = scheduledTime.minusSeconds(countdownTime);
 
                         if (currentTime.equals(countdownStart.format(DateTimeFormatter.ofPattern("HH:mm:ss")))) {
-                            Bukkit.broadcastMessage(getMessage.apply("messages.scheduled-restart"));
+                            Bukkit.broadcastMessage(plugin.getMessage("messages.scheduled-restart"));
                             startCountdown(countdownTime);
                         }
                     } catch (Exception e) {
@@ -62,10 +59,10 @@ public class ScheduledRestartHandler {
             @Override
             public void run() {
                 if (timeLeft <= 0) {
-                    Bukkit.broadcastMessage(getMessage.apply("messages.restart-started"));
+                    Bukkit.broadcastMessage(plugin.getMessage("messages.restart-started"));
                     Bukkit.getServer().shutdown();
                 } else {
-                    Bukkit.broadcastMessage(getMessage.apply("messages.restart-message"));
+                    Bukkit.broadcastMessage(plugin.getMessage("messages.restart-message", timeLeft));
                     timeLeft--;
                 }
             }
