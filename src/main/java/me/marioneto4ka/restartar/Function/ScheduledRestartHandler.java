@@ -8,13 +8,15 @@ import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.function.Function;
+import java.util.function.BiFunction;
+
 
 public class ScheduledRestartHandler {
 
     private final JavaPlugin plugin;
     private final Function<String, String> getMessage;
 
-    public ScheduledRestartHandler(JavaPlugin plugin, Function<String, String> getMessage) {
+    public ScheduledRestartHandler(JavaPlugin plugin, BiFunction<String, Integer, String> getMessage) {
         this.plugin = plugin;
         this.getMessage = getMessage;
     }
