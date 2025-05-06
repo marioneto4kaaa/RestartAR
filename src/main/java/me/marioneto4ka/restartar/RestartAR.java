@@ -118,6 +118,14 @@ public final class RestartAR extends JavaPlugin implements Listener {
         discordNotifier.sendDiscordMessage(msg);
     }
 
+    public void triggerRestart() {
+        if (getConfig().getBoolean("restart-instead-of-stop", false)) {
+             Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "restart");
+        } else {
+            Bukkit.shutdown();
+        }
+    }
+
     private class ARCommand implements CommandExecutor, TabCompleter {
 
         private static final int SPIGOT_RESOURCE_ID = 122574;
@@ -245,11 +253,7 @@ public final class RestartAR extends JavaPlugin implements Listener {
 
                     Bukkit.getScheduler().runTask(RestartAR.this, () -> {
                         Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "save-all");
-                        if (getConfig().getBoolean("restart-instead-of-stop", false)) {
-                             Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "restart");
-                        } else {
-                            Bukkit.shutdown();
-                        }
+                        triggerRestart();
                     });
                     break;
 
@@ -354,11 +358,7 @@ public final class RestartAR extends JavaPlugin implements Listener {
                         bossBar.removeAll();
                         bossBar = null;
                     }
-                    if (getConfig().getBoolean("restart-instead-of-stop", false)) {
-                        Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "restart");
-                    } else {
-                        Bukkit.shutdown();
-                    }
+                    triggerRestart();
                     cancel();
                     return;
                 }
@@ -382,11 +382,7 @@ public final class RestartAR extends JavaPlugin implements Listener {
                         bossBar = null;
                     }
 
-                    if (getConfig().getBoolean("restart-instead-of-stop", false)) {
-                        Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "restart");
-                    } else {
-                        Bukkit.shutdown();
-                    }
+                    triggerRestart();
                     cancel();
                     return;
                 }
