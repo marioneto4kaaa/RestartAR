@@ -1,7 +1,8 @@
 package me.marioneto4ka.restartar.Function;
 
 import org.bukkit.Bukkit;
-import org.bukkit.plugin.java.JavaPlugin;
+
+import me.marioneto4ka.restartar.RestartAR;
 
 import java.time.LocalDateTime;
 import java.time.LocalTime;
@@ -9,9 +10,9 @@ import java.time.format.DateTimeFormatter;
 import java.util.List;
 
 public class ScheduledRestartHandler {
-    private final JavaPlugin plugin;
+    private final RestartAR plugin;
 
-    public ScheduledRestartHandler(JavaPlugin plugin) {
+    public ScheduledRestartHandler(RestartAR plugin) {
         this.plugin = plugin;
     }
 
