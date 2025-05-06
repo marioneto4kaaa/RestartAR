@@ -65,7 +65,7 @@ public class ScheduledRestartHandler {
                     Bukkit.broadcastMessage(getMessage.apply("messages.restart-started"));
                     Bukkit.getServer().shutdown();
                 } else {
-                    Bukkit.broadcastMessage(getMessage.apply("messages.restart-message"));
+                    Bukkit.broadcastMessage(getMessage.apply("messages.restart-message", timeLeft));
                     timeLeft--;
                 }
             }
