@@ -40,7 +40,7 @@ public class ScheduledRestartHandler {
                         LocalTime countdownStart = scheduledTime.minusSeconds(countdownTime);
 
                         if (currentTime.equals(countdownStart.format(DateTimeFormatter.ofPattern("HH:mm:ss")))) {
-                            Bukkit.broadcastMessage(getMessage("messages.scheduled-restart"));
+                            Bukkit.broadcastMessage(plugin.getMessage("messages.scheduled-restart"));
                             startCountdown(countdownTime);
                         }
                     } catch (Exception e) {
@@ -58,10 +58,10 @@ public class ScheduledRestartHandler {
             @Override
             public void run() {
                 if (timeLeft <= 0) {
-                    Bukkit.broadcastMessage(getMessage("messages.restart-started"));
+                    Bukkit.broadcastMessage(plugin.getMessage("messages.restart-started"));
                     Bukkit.getServer().shutdown();
                 } else {
-                    Bukkit.broadcastMessage(getMessage("messages.restart-message", timeLeft));
+                    Bukkit.broadcastMessage(plugin.getMessage("messages.restart-message", timeLeft));
                     timeLeft--;
                 }
             }
