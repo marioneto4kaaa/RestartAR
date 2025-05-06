@@ -111,7 +111,7 @@ public final class RestartAR extends JavaPlugin implements Listener {
     }
 
     private void handleScheduledRestarts(List<String> restartDates) {
-        new ScheduledRestartHandler(this, this::getMessage).handleScheduledRestarts(restartDates);
+        new ScheduledRestartHandler(this).handleScheduledRestarts(restartDates);
     }
 // Выше не трогай
     public void sendToDiscord(String msg) {
