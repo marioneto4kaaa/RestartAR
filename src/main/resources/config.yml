@@ -44,6 +44,10 @@ title-countdown-announcements: [60, 40, 30, 20, 10, 5, 4, 3, 2, 1]
 # This is the default time (in seconds) the server will restart after the command is run if no specific time is given.
 default-restart-time: 60
 
+# Restarts the server instead of just stopping the server (useful if you don't want a looping start script).
+# You must have 'restart-script' configured correctly in your spigot.yml.
+restart-instead-of-stop: false
+
 # Whether to execute pre-restart commands
 # If set to true, the pre-restart commands will be executed before restarting the server.
 execute-pre-restart-commands: false
