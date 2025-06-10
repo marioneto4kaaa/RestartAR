@@ -1,8 +1,9 @@
 me\marioneto4ka\restartar\Function\ScheduledRestartHandler$1.class
 me\marioneto4ka\restartar\Function\DiscordNotifier.class
-me\marioneto4ka\restartar\Function\HelpMessageSender.class
 me\marioneto4ka\restartar\RestartAR$ARCommand.class
-me\marioneto4ka\restartar\RestartAR$1.class
 me\marioneto4ka\restartar\Function\AdminFeedbackNotifier.class
+me\marioneto4ka\restartar\Function\HelpMessageSender.class
+me\marioneto4ka\restartar\Function\PlaceholderExpansion.class
+me\marioneto4ka\restartar\RestartAR$1.class
 me\marioneto4ka\restartar\Function\ScheduledRestartHandler.class
 me\marioneto4ka\restartar\RestartAR.class

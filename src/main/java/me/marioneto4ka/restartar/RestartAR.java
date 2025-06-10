@@ -2,10 +2,7 @@ package me.marioneto4ka.restartar;
 
 import com.jeff_media.updatechecker.UpdateCheckSource;
 import com.jeff_media.updatechecker.UpdateChecker;
-import me.marioneto4ka.restartar.Function.AdminFeedbackNotifier;
-import me.marioneto4ka.restartar.Function.DiscordNotifier;
-import me.marioneto4ka.restartar.Function.HelpMessageSender;
-import me.marioneto4ka.restartar.Function.ScheduledRestartHandler;
+import me.marioneto4ka.restartar.Function.*;
 import net.md_5.bungee.api.ChatMessageType;
 import net.md_5.bungee.api.chat.TextComponent;
 import org.bukkit.Bukkit;
@@ -28,10 +25,8 @@ import org.bukkit.scheduler.BukkitRunnable;
 import org.bstats.bukkit.Metrics;
 
 import java.io.File;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Locale;
+import java.text.SimpleDateFormat;
+import java.util.*;
 
 public final class RestartAR extends JavaPlugin implements Listener {
     private int taskId = -1;
@@ -40,7 +35,6 @@ public final class RestartAR extends JavaPlugin implements Listener {
     private DiscordNotifier discordNotifier;
     private static final String SPIGOT_RESOURCE_ID = "122574";
     private AdminFeedbackNotifier feedbackNotifier;
-
     @Override
     public void onEnable() {
         saveDefaultConfig();
@@ -70,6 +64,13 @@ public final class RestartAR extends JavaPlugin implements Listener {
         });
 
         updateChecker.checkNow();
+
+        if (Bukkit.getPluginManager().isPluginEnabled("PlaceholderAPI")) {
+            new PlaceholderExpansion(this).register();
+            getLogger().info("PlaceholderAPI integration enabled.");
+        } else {
+            getLogger().warning("PlaceholderAPI not found. Placeholders will not work.");
+        }
     }
 
     @Override
@@ -350,6 +351,11 @@ public final class RestartAR extends JavaPlugin implements Listener {
                         bossBar.removeAll();
                         bossBar = null;
                     }
+
+                    String lastRestartTime = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date());
+                    getConfig().set("last-restart-time", lastRestartTime);
+                    saveConfig();
+
                     Bukkit.shutdown();
                     cancel();
                     return;

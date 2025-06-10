@@ -73,6 +73,9 @@ restart-dates:
   # Example with just time (no date)
   - "03:00:00"
   - "15:00:00"
+  # Example with day of week and time (weekly)
+  - "TUE 15:00:00"
+  - "FRI 22:00:00"
 
 # Discord bot settings
 discord-mode: "none"  # "bot" - use a bot, "webhook" - use a webhook, "none" - disable Discord messages
@@ -88,3 +91,5 @@ discord-thumbnail-url: "https://your.thumbnail.url"
 discord-footer-icon-url: "https://your.footer.icon.url"
 discord-username: "YourCustomUsername"
 discord-footer-text: "YourCustomFooterText"
+
+last-restart: "0"
