@@ -204,10 +204,13 @@ public final class RestartAR extends JavaPlugin implements Listener {
                     if (sender instanceof Player && sender.hasPermission("restartar.admin")) {
                         boolean feedbackNotification = getConfig().getBoolean("admin-feedback-notification", true);
 
+                        String lang = getConfig().getString("language", "en").toLowerCase();
+                        boolean isRu = lang.equals("ru");
+
                         if (!feedbackNotification) {
-                            String message = getConfig().getString("language", "en").equals("ru") ?
-                                    "§cУведомления для администраторов уже отключены." :
-                                    "§cAdmin feedback notification is already disabled.";
+                            String message = isRu
+                                    ? "§cУведомления для администраторов уже отключены."
+                                    : "§cAdmin feedback notification is already disabled.";
                             sender.sendMessage(message);
                             return true;
                         }
@@ -216,14 +219,17 @@ public final class RestartAR extends JavaPlugin implements Listener {
                         plugin.getConfig().set("admin-feedback-notification", false);
                         plugin.saveConfig();
 
-                        String successMessage = getConfig().getString("language", "en").equals("ru") ?
-                                "§aУведомления для администраторов были отключены." :
-                                "§aAdmin feedback notification has been disabled.";
+                        String successMessage = isRu
+                                ? "§aУведомления для администраторов были отключены."
+                                : "§aAdmin feedback notification has been disabled.";
                         sender.sendMessage(successMessage);
                     } else {
-                        String noPermissionMessage = getConfig().getString("language", "en").equals("ru") ?
-                                "§cУ вас нет прав для выполнения этой команды." :
-                                "§cYou don't have permission to do that.";
+                        String lang = getConfig().getString("language", "en").toLowerCase();
+                        boolean isRu = lang.equals("ru");
+
+                        String noPermissionMessage = isRu
+                                ? "§cУ вас нет прав для выполнения этой команды."
+                                : "§cYou don't have permission to do that.";
                         sender.sendMessage(noPermissionMessage);
                     }
                     return true;
