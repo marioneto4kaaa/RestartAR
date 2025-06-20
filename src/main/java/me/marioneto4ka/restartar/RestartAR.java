@@ -369,7 +369,6 @@ public final class RestartAR extends JavaPlugin implements Listener {
                         bossBar.removeAll();
                         bossBar = null;
                     }
-
                     triggerRestart();
                     cancel();
                     return;
