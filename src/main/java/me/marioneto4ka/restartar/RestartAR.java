@@ -112,11 +112,23 @@ public final class RestartAR extends JavaPlugin implements Listener {
     }
 
     private void handleScheduledRestarts(List<String> restartDates) {
-        new ScheduledRestartHandler(this, this::getMessage).handleScheduledRestarts(restartDates);
+        new ScheduledRestartHandler(this).handleScheduledRestarts(restartDates);
     }
 // Выше не трогай
     public void sendToDiscord(String msg) {
         discordNotifier.sendDiscordMessage(msg);
+    }
+
+    public void triggerRestart() {
+        String lastRestartTime = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date());
+        getConfig().set("last-restart-time", lastRestartTime);
+        saveConfig();
+
+        if (getConfig().getBoolean("restart-instead-of-stop", false)) {
+             Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "restart");
+        } else {
+            Bukkit.shutdown();
+        }
     }
 
     private class ARCommand implements CommandExecutor, TabCompleter {
@@ -252,7 +264,7 @@ public final class RestartAR extends JavaPlugin implements Listener {
 
                     Bukkit.getScheduler().runTask(RestartAR.this, () -> {
                         Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "save-all");
-                        Bukkit.shutdown();
+                        triggerRestart();
                     });
                     break;
 
@@ -357,12 +369,7 @@ public final class RestartAR extends JavaPlugin implements Listener {
                         bossBar.removeAll();
                         bossBar = null;
                     }
-
-                    String lastRestartTime = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date());
-                    getConfig().set("last-restart-time", lastRestartTime);
-                    saveConfig();
-
-                    Bukkit.shutdown();
+                    triggerRestart();
                     cancel();
                     return;
                 }
@@ -385,8 +392,7 @@ public final class RestartAR extends JavaPlugin implements Listener {
                         bossBar.removeAll();
                         bossBar = null;
                     }
-
-                    Bukkit.shutdown();
+                    triggerRestart();
                     cancel();
                     return;
                 }
