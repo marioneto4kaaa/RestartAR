@@ -2,10 +2,7 @@ package me.marioneto4ka.restartar;
 
 import com.jeff_media.updatechecker.UpdateCheckSource;
 import com.jeff_media.updatechecker.UpdateChecker;
-import me.marioneto4ka.restartar.Function.AdminFeedbackNotifier;
-import me.marioneto4ka.restartar.Function.DiscordNotifier;
-import me.marioneto4ka.restartar.Function.HelpMessageSender;
-import me.marioneto4ka.restartar.Function.ScheduledRestartHandler;
+import me.marioneto4ka.restartar.Function.*;
 import net.md_5.bungee.api.ChatMessageType;
 import net.md_5.bungee.api.chat.TextComponent;
 import org.bukkit.Bukkit;
@@ -28,10 +25,8 @@ import org.bukkit.scheduler.BukkitRunnable;
 import org.bstats.bukkit.Metrics;
 
 import java.io.File;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Locale;
+import java.text.SimpleDateFormat;
+import java.util.*;
 
 public final class RestartAR extends JavaPlugin implements Listener {
     private int taskId = -1;
@@ -40,7 +35,6 @@ public final class RestartAR extends JavaPlugin implements Listener {
     private DiscordNotifier discordNotifier;
     private static final String SPIGOT_RESOURCE_ID = "122574";
     private AdminFeedbackNotifier feedbackNotifier;
-
     @Override
     public void onEnable() {
         saveDefaultConfig();
@@ -70,6 +64,13 @@ public final class RestartAR extends JavaPlugin implements Listener {
         });
 
         updateChecker.checkNow();
+
+        if (Bukkit.getPluginManager().isPluginEnabled("PlaceholderAPI")) {
+            new PlaceholderExpansion(this).register();
+            getLogger().info("PlaceholderAPI integration enabled.");
+        } else {
+            getLogger().warning("PlaceholderAPI not found. Placeholders will not work.");
+        }
     }
 
     @Override
@@ -119,6 +120,10 @@ public final class RestartAR extends JavaPlugin implements Listener {
     }
 
     public void triggerRestart() {
+        String lastRestartTime = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date());
+        getConfig().set("last-restart-time", lastRestartTime);
+        saveConfig();
+
         if (getConfig().getBoolean("restart-instead-of-stop", false)) {
              Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "restart");
         } else {
@@ -211,10 +216,13 @@ public final class RestartAR extends JavaPlugin implements Listener {
                     if (sender instanceof Player && sender.hasPermission("restartar.admin")) {
                         boolean feedbackNotification = getConfig().getBoolean("admin-feedback-notification", true);
 
+                        String lang = getConfig().getString("language", "en").toLowerCase();
+                        boolean isRu = lang.equals("ru");
+
                         if (!feedbackNotification) {
-                            String message = getConfig().getString("language", "en").equals("ru") ?
-                                    "§cУведомления для администраторов уже отключены." :
-                                    "§cAdmin feedback notification is already disabled.";
+                            String message = isRu
+                                    ? "§cУведомления для администраторов уже отключены."
+                                    : "§cAdmin feedback notification is already disabled.";
                             sender.sendMessage(message);
                             return true;
                         }
@@ -223,14 +231,17 @@ public final class RestartAR extends JavaPlugin implements Listener {
                         plugin.getConfig().set("admin-feedback-notification", false);
                         plugin.saveConfig();
 
-                        String successMessage = getConfig().getString("language", "en").equals("ru") ?
-                                "§aУведомления для администраторов были отключены." :
-                                "§aAdmin feedback notification has been disabled.";
+                        String successMessage = isRu
+                                ? "§aУведомления для администраторов были отключены."
+                                : "§aAdmin feedback notification has been disabled.";
                         sender.sendMessage(successMessage);
                     } else {
-                        String noPermissionMessage = getConfig().getString("language", "en").equals("ru") ?
-                                "§cУ вас нет прав для выполнения этой команды." :
-                                "§cYou don't have permission to do that.";
+                        String lang = getConfig().getString("language", "en").toLowerCase();
+                        boolean isRu = lang.equals("ru");
+
+                        String noPermissionMessage = isRu
+                                ? "§cУ вас нет прав для выполнения этой команды."
+                                : "§cYou don't have permission to do that.";
                         sender.sendMessage(noPermissionMessage);
                     }
                     return true;
@@ -358,6 +369,7 @@ public final class RestartAR extends JavaPlugin implements Listener {
                         bossBar.removeAll();
                         bossBar = null;
                     }
+
                     triggerRestart();
                     cancel();
                     return;

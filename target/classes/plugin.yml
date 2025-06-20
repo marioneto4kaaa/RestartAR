@@ -1,5 +1,5 @@
 name: RestartAR
-version: '1.9.0'
+version: '1.9.4'
 main: me.marioneto4ka.restartar.RestartAR
 api-version: '1.21'
 commands:

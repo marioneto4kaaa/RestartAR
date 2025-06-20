@@ -1,0 +1,20 @@
+# %time% - 格式為 "HH:mm" 的時間。
+# %executor% - 被替換為執行指令的玩家名稱。
+messages:
+  restart-message: "§6⚠ 伺服器將在 §c%time% §6秒後重啟！"
+  restart-started: "§e⏳ 重啟倒數開始！時間：§c%time% §e秒。"
+  restart-cancelled: "§c❌ 已取消重啟！"
+  restart-done: "§4🔄 伺服器正在重啟中！"
+  usage-ar: "§e用法：/ar <cancel | reload>"
+  no-permission: "§4🚫 你沒有權限使用此指令！"
+  no-active-restart: "§c❗ 目前沒有排定的重啟！"
+  config-reloaded: "§a✅ 設定檔已成功重新載入！"
+  actionbar-restart-message: "§e⏳ 將於 §c%time% §e秒後重啟！"
+  bossbar-restart-message: "伺服器將在 %time% 秒後重啟。"
+  scheduled-restart: "⚠️ 伺服器將在 %time% 秒後重啟！"
+  title-restart-message: "§4⚠ 將於 %time% 秒後重啟！"
+  subtitle-restart-message: "§e⏳ 大約2分鐘後可以重新加入！"
+  discord-restart-message: "⚠️ **伺服器將在 %time% 秒後重啟！**"
+  discord-restart-done: "✅ **伺服器已成功重啟！**"
+  restart-now: "§c伺服器立即重啟，由 %executor% 觸發！"
+  discord-restart-now: "**伺服器正在立即重啟！** 執行者：`%executor%`"

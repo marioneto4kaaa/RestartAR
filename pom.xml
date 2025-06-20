@@ -6,7 +6,7 @@
 
   <groupId>me.marioneto4ka</groupId>
   <artifactId>RestartAR</artifactId>
-  <version>1.9.0</version>
+  <version>1.9.4</version>
   <packaging>jar</packaging>
 
   <name>RestartAR</name>
@@ -69,6 +69,10 @@
           <id>jeff-media-public</id>
           <url>https://repo.jeff-media.com/public/</url>
       </repository>
+      <repository>
+          <id>jitpack.io</id>
+          <url>https://jitpack.io</url>
+      </repository>
   </repositories>
 
   <dependencies>
@@ -94,6 +98,12 @@
           <artifactId>SpigotUpdateChecker</artifactId>
           <version>3.0.4</version>
           <scope>compile</scope>
+      </dependency>
+      <dependency>
+          <groupId>com.github.PlaceholderAPI</groupId>
+          <artifactId>PlaceholderAPI</artifactId>
+          <version>2.11.6</version>
+          <scope>provided</scope>
       </dependency>
   </dependencies>
 </project>

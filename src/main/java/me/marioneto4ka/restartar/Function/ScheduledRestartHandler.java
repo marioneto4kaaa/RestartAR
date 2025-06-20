@@ -4,6 +4,7 @@ import org.bukkit.Bukkit;
 
 import me.marioneto4ka.restartar.RestartAR;
 
+import java.time.DayOfWeek;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
@@ -15,41 +16,82 @@ public class ScheduledRestartHandler {
     public ScheduledRestartHandler(RestartAR plugin) {
         this.plugin = plugin;
     }
-
     public void handleScheduledRestarts(List<String> restartDates) {
         Bukkit.getScheduler().runTaskTimer(plugin, () -> {
-            String currentDateTime = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
-            String currentTime = LocalTime.now().format(DateTimeFormatter.ofPattern("HH:mm:ss"));
+            LocalDateTime now = LocalDateTime.now();
+            String currentDateTime = now.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+            String currentTime = now.toLocalTime().format(DateTimeFormatter.ofPattern("HH:mm:ss"));
+            DayOfWeek currentDay = now.getDayOfWeek();
             int countdownTime = plugin.getConfig().getInt("default-restart-time", 60);
 
             for (String restartDate : restartDates) {
-                if (restartDate.contains("-")) {
-                    try {
+                try {
+                    if (restartDate.contains("-")) {
                         LocalDateTime scheduledDateTime = LocalDateTime.parse(restartDate, DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
                         LocalDateTime countdownStart = scheduledDateTime.minusSeconds(countdownTime);
 
                         if (currentDateTime.equals(countdownStart.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")))) {
-                            Bukkit.broadcastMessage(plugin.getMessage("messages.scheduled-restart"));
+                            String scheduledTemplate = getMessage.apply("messages.scheduled-restart");
+                            String scheduledMessage = scheduledTemplate.replace("%time%", String.valueOf(countdownTime));
+                            Bukkit.broadcastMessage(scheduledMessage);
                             startCountdown(countdownTime);
                         }
-                    } catch (Exception e) {
-                        plugin.getLogger().warning("Invalid scheduled date format: " + restartDate);
-                    }
-                } else {
-                    try {
+                    } else if (restartDate.matches("(?i)(mon|tue|wed|thu|fri|sat|sun)\\s+\\d{2}:\\d{2}:\\d{2}")) {
+                        String[] parts = restartDate.split("\\s+");
+                        String dayPart = parts[0].toUpperCase();
+                        String timePart = parts[1];
+
+                        DayOfWeek scheduledDay = parseDayOfWeek(dayPart);
+                        if (scheduledDay == null) {
+                            plugin.getLogger().warning("Invalid day of week in scheduled restart: " + dayPart);
+                            continue;
+                        }
+
+                        LocalTime scheduledTime = LocalTime.parse(timePart, DateTimeFormatter.ofPattern("HH:mm:ss"));
+                        LocalTime countdownStart = scheduledTime.minusSeconds(countdownTime);
+
+                        if (currentDay == scheduledDay && currentTime.equals(countdownStart.format(DateTimeFormatter.ofPattern("HH:mm:ss")))) {
+                            String scheduledTemplate = getMessage.apply("messages.scheduled-restart");
+                            String scheduledMessage = scheduledTemplate.replace("%time%", String.valueOf(countdownTime));
+                            Bukkit.broadcastMessage(scheduledMessage);
+                            startCountdown(countdownTime);
+                        }
+                    } else {
                         LocalTime scheduledTime = LocalTime.parse(restartDate, DateTimeFormatter.ofPattern("HH:mm:ss"));
                         LocalTime countdownStart = scheduledTime.minusSeconds(countdownTime);
 
                         if (currentTime.equals(countdownStart.format(DateTimeFormatter.ofPattern("HH:mm:ss")))) {
-                            Bukkit.broadcastMessage(plugin.getMessage("messages.scheduled-restart"));
+                            String scheduledTemplate = getMessage.apply("messages.scheduled-restart");
+                            String scheduledMessage = scheduledTemplate.replace("%time%", String.valueOf(countdownTime));
+                            Bukkit.broadcastMessage(scheduledMessage);
                             startCountdown(countdownTime);
                         }
-                    } catch (Exception e) {
-                        plugin.getLogger().warning("Invalid scheduled time format: " + restartDate);
                     }
+                } catch (Exception e) {
+                    plugin.getLogger().warning("Invalid scheduled restart format: " + restartDate);
                 }
             }
         }, 20L, 20L);
+    }
+
+    private DayOfWeek parseDayOfWeek(String day) {
+        switch (day.toUpperCase()) {
+            case "MON":
+            case "MONDAY": return DayOfWeek.MONDAY;
+            case "TUE":
+            case "TUESDAY": return DayOfWeek.TUESDAY;
+            case "WED":
+            case "WEDNESDAY": return DayOfWeek.WEDNESDAY;
+            case "THU":
+            case "THURSDAY": return DayOfWeek.THURSDAY;
+            case "FRI":
+            case "FRIDAY": return DayOfWeek.FRIDAY;
+            case "SAT":
+            case "SATURDAY": return DayOfWeek.SATURDAY;
+            case "SUN":
+            case "SUNDAY": return DayOfWeek.SUNDAY;
+            default: return null;
+        }
     }
 
     private void startCountdown(int countdownTime) {
@@ -59,10 +101,13 @@ public class ScheduledRestartHandler {
             @Override
             public void run() {
                 if (timeLeft <= 0) {
-                    Bukkit.broadcastMessage(plugin.getMessage("messages.restart-started", timeLeft));
-                    plugin.triggerRestart();
+                    String startedMessage = getMessage.apply("messages.restart-started").replace("%time%", String.valueOf(0));
+                    Bukkit.broadcastMessage(startedMessage);
+                    Bukkit.getServer().shutdown();
                 } else {
-                    Bukkit.broadcastMessage(plugin.getMessage("messages.restart-message", timeLeft));
+                    String messageTemplate = getMessage.apply("messages.restart-message");
+                    String message = messageTemplate.replace("%time%", String.valueOf(timeLeft));
+                    Bukkit.broadcastMessage(message);
                     timeLeft--;
                 }
             }

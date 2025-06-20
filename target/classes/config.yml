@@ -9,9 +9,11 @@
 # Discord: marioneto4ka
 # Telegram: marioneto4kaa
 
-# Language selection (available: "en", "ru")
+# Language selection (available: "en", "ru", "zh-tw")
 # Choose the language for the plugin's messages.
 language: "en"
+
+admin-feedback-notification: true
 
 # Notification method for restart
 # Specify how the restart countdown will be displayed to players.
@@ -62,8 +64,6 @@ pre-restart-commands:
 # Set this to true if you want to enable automatic restarts at specific times.
 enable-scheduled-restarts: false
 
-admin-feedback-notification: true
-
 # Dates and times for automatic restart (format: yyyy-MM-dd HH:mm:ss or just HH:mm:ss)
 # List of dates and times when the server should automatically restart. Use full date-time or just the time.
 restart-dates:
@@ -73,6 +73,9 @@ restart-dates:
   # Example with just time (no date)
   - "03:00:00"
   - "15:00:00"
+  # Example with day of week and time (weekly)
+  - "TUE 15:00:00"
+  - "FRI 22:00:00"
 
 # Discord bot settings
 discord-mode: "none"  # "bot" - use a bot, "webhook" - use a webhook, "none" - disable Discord messages
@@ -88,3 +91,5 @@ discord-thumbnail-url: "https://your.thumbnail.url"
 discord-footer-icon-url: "https://your.footer.icon.url"
 discord-username: "YourCustomUsername"
 discord-footer-text: "YourCustomFooterText"
+
+last-restart: "0"
