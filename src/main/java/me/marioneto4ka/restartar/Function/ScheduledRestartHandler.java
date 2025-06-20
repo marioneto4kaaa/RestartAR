@@ -103,7 +103,7 @@ public class ScheduledRestartHandler {
                 if (timeLeft <= 0) {
                     String startedMessage = getMessage.apply("messages.restart-started").replace("%time%", String.valueOf(0));
                     Bukkit.broadcastMessage(startedMessage);
-                    Bukkit.getServer().shutdown();
+                    plugin.triggerRestart();
                 } else {
                     String messageTemplate = getMessage.apply("messages.restart-message");
                     String message = messageTemplate.replace("%time%", String.valueOf(timeLeft));
