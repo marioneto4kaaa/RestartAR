@@ -31,8 +31,7 @@ public class ScheduledRestartHandler {
                         LocalDateTime countdownStart = scheduledDateTime.minusSeconds(countdownTime);
 
                         if (currentDateTime.equals(countdownStart.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")))) {
-                            String scheduledTemplate = getMessage.apply("messages.scheduled-restart");
-                            String scheduledMessage = scheduledTemplate.replace("%time%", String.valueOf(countdownTime));
+                            String scheduledMessage = plugin.getMessage("messages.scheduled-restart", countdownTime);
                             Bukkit.broadcastMessage(scheduledMessage);
                             startCountdown(countdownTime);
                         }
@@ -51,8 +50,7 @@ public class ScheduledRestartHandler {
                         LocalTime countdownStart = scheduledTime.minusSeconds(countdownTime);
 
                         if (currentDay == scheduledDay && currentTime.equals(countdownStart.format(DateTimeFormatter.ofPattern("HH:mm:ss")))) {
-                            String scheduledTemplate = getMessage.apply("messages.scheduled-restart");
-                            String scheduledMessage = scheduledTemplate.replace("%time%", String.valueOf(countdownTime));
+                            String scheduledMessage = plugin.getMessage("messages.scheduled-restart", countdownTime);
                             Bukkit.broadcastMessage(scheduledMessage);
                             startCountdown(countdownTime);
                         }
@@ -61,8 +59,7 @@ public class ScheduledRestartHandler {
                         LocalTime countdownStart = scheduledTime.minusSeconds(countdownTime);
 
                         if (currentTime.equals(countdownStart.format(DateTimeFormatter.ofPattern("HH:mm:ss")))) {
-                            String scheduledTemplate = getMessage.apply("messages.scheduled-restart");
-                            String scheduledMessage = scheduledTemplate.replace("%time%", String.valueOf(countdownTime));
+                            String scheduledMessage = plugin.getMessage("messages.scheduled-restart", countdownTime);
                             Bukkit.broadcastMessage(scheduledMessage);
                             startCountdown(countdownTime);
                         }
@@ -101,12 +98,11 @@ public class ScheduledRestartHandler {
             @Override
             public void run() {
                 if (timeLeft <= 0) {
-                    String startedMessage = getMessage.apply("messages.restart-started").replace("%time%", String.valueOf(0));
+                    String startedMessage = plugin.getMessage("messages.restart-started", 0);
                     Bukkit.broadcastMessage(startedMessage);
                     plugin.triggerRestart();
                 } else {
-                    String messageTemplate = getMessage.apply("messages.restart-message");
-                    String message = messageTemplate.replace("%time%", String.valueOf(timeLeft));
+                    String message = plugin.getMessage("messages.restart-message", timeLeft);
                     Bukkit.broadcastMessage(message);
                     timeLeft--;
                 }
