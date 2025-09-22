@@ -26,6 +26,7 @@ import org.bstats.bukkit.Metrics;
 
 import java.io.File;
 import java.text.SimpleDateFormat;
+import java.time.ZoneId;
 import java.util.*;
 
 public final class RestartAR extends JavaPlugin implements Listener {
@@ -111,10 +112,23 @@ public final class RestartAR extends JavaPlugin implements Listener {
         updateChecker.checkNow();
     }
 
-    private void handleScheduledRestarts(List<String> restartDates) {
-        new ScheduledRestartHandler(this, this::getMessage).handleScheduledRestarts(restartDates);
+    private ZoneId getPluginZoneId() {
+        String timezone = getConfig().getString("timezone", "").trim();
+        if (timezone.isEmpty()) return ZoneId.systemDefault();
+        try {
+            return ZoneId.of(timezone);
+        } catch (Exception e) {
+            getLogger().warning("Invalid timezone in config: " + timezone + ". Using server default.");
+            return ZoneId.systemDefault();
+        }
     }
-// Выше не трогай
+
+    private void handleScheduledRestarts(List<String> restartDates) {
+        ZoneId zoneId = getPluginZoneId();
+        new ScheduledRestartHandler(this, this::getMessage, zoneId).handleScheduledRestarts(restartDates);
+    }
+
+    // Выше не трогай
     public void sendToDiscord(String msg) {
         discordNotifier.sendDiscordMessage(msg);
     }
@@ -319,7 +333,7 @@ public final class RestartAR extends JavaPlugin implements Listener {
             sender.sendMessage("§6Daily restarts:");
             for (String restart : dailyRestarts) {
 
-    sender.sendMessage("  §7- §f" + restart);
+                sender.sendMessage("  §7- §f" + restart);
             }
         }
     }

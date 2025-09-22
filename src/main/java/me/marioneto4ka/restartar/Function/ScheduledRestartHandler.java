@@ -3,9 +3,7 @@ package me.marioneto4ka.restartar.Function;
 import org.bukkit.Bukkit;
 import org.bukkit.plugin.java.JavaPlugin;
 
-import java.time.DayOfWeek;
-import java.time.LocalDateTime;
-import java.time.LocalTime;
+import java.time.*;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.function.Function;
@@ -14,14 +12,17 @@ public class ScheduledRestartHandler {
 
     private final JavaPlugin plugin;
     private final Function<String, String> getMessage;
+    private final ZoneId zoneId;
 
-    public ScheduledRestartHandler(JavaPlugin plugin, Function<String, String> getMessage) {
+    public ScheduledRestartHandler(JavaPlugin plugin, Function<String, String> getMessage, ZoneId zoneId) {
         this.plugin = plugin;
         this.getMessage = getMessage;
+        this.zoneId = zoneId;
     }
+
     public void handleScheduledRestarts(List<String> restartDates) {
         Bukkit.getScheduler().runTaskTimer(plugin, () -> {
-            LocalDateTime now = LocalDateTime.now();
+            ZonedDateTime now = ZonedDateTime.now(zoneId);
             String currentDateTime = now.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
             String currentTime = now.toLocalTime().format(DateTimeFormatter.ofPattern("HH:mm:ss"));
             DayOfWeek currentDay = now.getDayOfWeek();
@@ -31,7 +32,8 @@ public class ScheduledRestartHandler {
                 try {
                     if (restartDate.contains("-")) {
                         LocalDateTime scheduledDateTime = LocalDateTime.parse(restartDate, DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
-                        LocalDateTime countdownStart = scheduledDateTime.minusSeconds(countdownTime);
+                        ZonedDateTime zonedScheduled = scheduledDateTime.atZone(zoneId);
+                        ZonedDateTime countdownStart = zonedScheduled.minusSeconds(countdownTime);
 
                         if (currentDateTime.equals(countdownStart.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")))) {
                             String scheduledTemplate = getMessage.apply("messages.scheduled-restart");
@@ -45,10 +47,7 @@ public class ScheduledRestartHandler {
                         String timePart = parts[1];
 
                         DayOfWeek scheduledDay = parseDayOfWeek(dayPart);
-                        if (scheduledDay == null) {
-                            plugin.getLogger().warning("Invalid day of week in scheduled restart: " + dayPart);
-                            continue;
-                        }
+                        if (scheduledDay == null) continue;
 
                         LocalTime scheduledTime = LocalTime.parse(timePart, DateTimeFormatter.ofPattern("HH:mm:ss"));
                         LocalTime countdownStart = scheduledTime.minusSeconds(countdownTime);
