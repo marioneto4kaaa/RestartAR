@@ -139,7 +139,7 @@ public final class RestartAR extends JavaPlugin implements Listener {
         saveConfig();
 
         if (getConfig().getBoolean("restart-instead-of-stop", false)) {
-             Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "restart");
+            Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "restart");
         } else {
             Bukkit.shutdown();
         }
