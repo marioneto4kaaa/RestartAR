@@ -6,7 +6,7 @@
 
   <groupId>me.marioneto4ka</groupId>
   <artifactId>RestartAR</artifactId>
-  <version>1.9.4</version>
+  <version>1.9.6</version>
   <packaging>jar</packaging>
 
   <name>RestartAR</name>

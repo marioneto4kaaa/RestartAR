@@ -15,6 +15,12 @@ language: "en"
 
 admin-feedback-notification: true
 
+# Time settings
+# By default, the plugin uses the server's local time.
+# If you want to use a specific timezone, set it here (e.g., "Europe/Kiev", "America/New_York").
+# Leave empty ("") to use server local time.
+timezone: ""  # "" = server local time, or "Europe/Kiev", "UTC", etc.
+
 # Notification method for restart
 # Specify how the restart countdown will be displayed to players.
 # Possible values:

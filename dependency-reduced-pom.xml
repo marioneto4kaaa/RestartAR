@@ -4,7 +4,7 @@
   <groupId>me.marioneto4ka</groupId>
   <artifactId>RestartAR</artifactId>
   <name>RestartAR</name>
-  <version>1.9.4</version>
+  <version>1.9.6</version>
   <build>
     <resources>
       <resource>
