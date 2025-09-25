@@ -109,7 +109,7 @@ public class ScheduledRestartHandler {
         }
 
         if (notificationTypes.contains("bossbar")) {
-            bossBar = Bukkit.createBossBar(plugin.getMessage("messages.bossbar-restart-message", String.valueOf(seconds)),
+            bossBar = Bukkit.createBossBar(plugin.getMessage("messages.bossbar-restart-message", seconds),
                     bossBarColor, BarStyle.SEGMENTED_10, BarFlag.DARKEN_SKY);
             bossBar.setProgress(1.0);
             for (Player player : Bukkit.getOnlinePlayers()) {
@@ -162,11 +162,11 @@ public class ScheduledRestartHandler {
                 }
 
                 if (notificationTypes.contains("chat") && countdownTimes.contains(timeLeft)) {
-                    Bukkit.broadcastMessage(plugin.getMessage("messages.restart-message", String.valueOf(timeLeft)));
+                    Bukkit.broadcastMessage(plugin.getMessage("messages.restart-message", timeLeft));
                 }
 
                 if (notificationTypes.contains("actionbar")) {
-                    String actionBarMessage = plugin.getMessage("messages.actionbar-restart-message", String.valueOf(timeLeft));
+                    String actionBarMessage = plugin.getMessage("messages.actionbar-restart-message", timeLeft);
                     for (Player player : Bukkit.getOnlinePlayers()) {
                         player.spigot().sendMessage(ChatMessageType.ACTION_BAR, TextComponent.fromLegacyText(actionBarMessage));
                     }
@@ -177,14 +177,14 @@ public class ScheduledRestartHandler {
 
                 if (notificationTypes.contains("title") && (titleEverySecond || titleCountdownTimes.contains(timeLeft))) {
                     for (Player player : Bukkit.getOnlinePlayers()) {
-                        String titleMessage = plugin.getMessage("messages.title-restart-message", String.valueOf(timeLeft));
-                        String subtitleMessage = plugin.getMessage("messages.subtitle-restart-message", String.valueOf(timeLeft));
+                        String titleMessage = plugin.getMessage("messages.title-restart-message", timeLeft);
+                        String subtitleMessage = plugin.getMessage("messages.subtitle-restart-message", timeLeft);
                         player.sendTitle(titleMessage, subtitleMessage, 10, 40, 10);
                     }
                 }
 
                 if (notificationTypes.contains("bossbar") && bossBar != null) {
-                    bossBar.setTitle(plugin.getMessage("messages.bossbar-restart-message", String.valueOf(timeLeft)));
+                    bossBar.setTitle(plugin.getMessage("messages.bossbar-restart-message", timeLeft));
                     bossBar.setProgress((double) timeLeft / seconds);
                 }
 
@@ -193,4 +193,5 @@ public class ScheduledRestartHandler {
         }.runTaskTimer(plugin, 0L, 20L);
     }
 }
+
 
