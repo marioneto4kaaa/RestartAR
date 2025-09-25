@@ -187,5 +187,3 @@ public class ScheduledRestartHandler {
         }.runTaskTimer(plugin, 0L, 20L);
     }
 }
-
-
