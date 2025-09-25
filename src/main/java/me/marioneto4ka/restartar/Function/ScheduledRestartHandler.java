@@ -18,7 +18,6 @@ import java.time.*;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Locale;
-import java.util.function.Function;
 
 public class ScheduledRestartHandler {
     private final RestartAR plugin;
@@ -134,7 +133,7 @@ public class ScheduledRestartHandler {
                     plugin.getConfig().set("last-restart-time", lastRestartTime);
                     plugin.saveConfig();
 
-                    Bukkit.shutdown();
+                    plugin.triggerRestart();
                     cancel();
                     return;
                 }
@@ -157,7 +156,7 @@ public class ScheduledRestartHandler {
                         bossBar = null;
                     }
 
-                    Bukkit.shutdown();
+                    plugin.triggerRestart();
                     cancel();
                     return;
                 }
@@ -194,3 +193,4 @@ public class ScheduledRestartHandler {
         }.runTaskTimer(plugin, 0L, 20L);
     }
 }
+
