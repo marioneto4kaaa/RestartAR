@@ -127,11 +127,6 @@ public class ScheduledRestartHandler {
                         bossBar.removeAll();
                         bossBar = null;
                     }
-
-                    String lastRestartTime = java.time.LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
-                    plugin.getConfig().set("last-restart-time", lastRestartTime);
-                    plugin.saveConfig();
-
                     plugin.triggerRestart();
                     cancel();
                     return;
