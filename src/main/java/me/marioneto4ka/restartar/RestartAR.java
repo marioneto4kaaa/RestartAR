@@ -133,9 +133,9 @@ public final class RestartAR extends JavaPlugin implements Listener {
         DiscordNotifier discordNotifier = new DiscordNotifier(this);
 
         ZoneId zoneId = getPluginZoneId();
-        new ScheduledRestartHandler(this, this::getMessage, zoneId, discordNotifier)
-                .handleScheduledRestarts(restartDates);
 
+        new ScheduledRestartHandler(this, zoneId, discordNotifier)
+                .handleScheduledRestarts(restartDates);
     }
 
     // Выше не трогай
@@ -213,12 +213,7 @@ public final class RestartAR extends JavaPlugin implements Listener {
                         bossBar.removeAll();
                         bossBar = null;
                     }
-
-                    String lastRestartTime = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date());
-                    getConfig().set("last-restart-time", lastRestartTime);
-                    saveConfig();
-
-                    Bukkit.shutdown();
+                    triggerRestart();
                     cancel();
                     return;
                 }
@@ -241,8 +236,7 @@ public final class RestartAR extends JavaPlugin implements Listener {
                         bossBar.removeAll();
                         bossBar = null;
                     }
-
-                    Bukkit.shutdown();
+                    triggerRestart();
                     cancel();
                     return;
                 }
