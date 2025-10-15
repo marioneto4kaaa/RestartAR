@@ -1,0 +1,20 @@
+# %time% - Zeit im Format "HH:mm".
+# %executor% - Wird durch den Namen des Spielers ersetzt, der den Befehl ausgeführt hat.
+messages:
+  restart-message: "§6⚠ Der Server wird in §c%time% §6Sekunden neu gestartet!"
+  restart-started: "§e⏳ Der Countdown zum Neustart hat begonnen! Zeit: §c%time% §eSek."
+  restart-cancelled: "§c❌ Neustart abgebrochen!"
+  restart-done: "§4🔄 Der Server wird neu gestartet!"
+  usage-ar: "§eVerwendung: /ar <cancel | reload>"
+  no-permission: "§4🚫 Du hast keine Berechtigung, diesen Befehl auszuführen!"
+  no-active-restart: "§c❗ Es gibt keinen geplanten Neustart!"
+  config-reloaded: "§a✅ Konfiguration erfolgreich neu geladen!"
+  actionbar-restart-message: "§e⏳ Neustart in §c%time% §eSekunden!"
+  bossbar-restart-message: "Neustart in %time% Sekunden."
+  scheduled-restart: "⚠️ Der Server wird in %time% Sekunden neu gestartet!"
+  title-restart-message: "§4⚠ Neustart in %time% Sekunden!"
+  subtitle-restart-message: "§e⏳ Speichere jetzt deinen Fortschritt!"
+  discord-restart-message: "⚠️ Der Server wird in %time% Sekunden neu gestartet!"
+  discord-restart-done: "✅ Der Server wurde erfolgreich neu gestartet!"
+  restart-now: "§cDer Server-Neustart wurde sofort von Spieler %executor% ausgelöst!"
+  discord-restart-now: "**Der Server wird sofort neu gestartet!** Ausgeführt von Spieler `%executor%`"

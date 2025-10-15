@@ -1,5 +1,6 @@
 package me.marioneto4ka.restartar.Function;
 
+import me.marioneto4ka.restartar.Discord.DiscordNotifier;
 import org.bukkit.Bukkit;
 import org.bukkit.boss.BarColor;
 import org.bukkit.boss.BarFlag;
@@ -22,52 +23,63 @@ public class ScheduledRestartHandler {
     private final RestartAR plugin;
     private final ZoneId zoneId;
     private BossBar bossBar;
+    private final DiscordNotifier discordNotifier;
 
-    public ScheduledRestartHandler(RestartAR plugin, ZoneId zoneId) {
+
+    public ScheduledRestartHandler(JavaPlugin plugin, ZoneId zoneId, DiscordNotifier discordNotifier) {
         this.plugin = plugin;
         this.zoneId = zoneId;
+        this.discordNotifier = discordNotifier;
     }
 
     public void handleScheduledRestarts(List<String> restartDates) {
         Bukkit.getScheduler().runTaskTimer(plugin, () -> {
             ZonedDateTime now = ZonedDateTime.now(zoneId);
-            String currentDateTime = now.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
-            String currentTime = now.toLocalTime().format(DateTimeFormatter.ofPattern("HH:mm:ss"));
-            DayOfWeek currentDay = now.getDayOfWeek();
             int countdownTime = plugin.getConfig().getInt("default-restart-time", 60);
 
             for (String restartDate : restartDates) {
                 try {
-                    if (restartDate.contains("-")) {
-                        LocalDateTime scheduledDateTime = LocalDateTime.parse(restartDate, DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
-                        ZonedDateTime zonedScheduled = scheduledDateTime.atZone(zoneId);
-                        ZonedDateTime countdownStart = zonedScheduled.minusSeconds(countdownTime);
+                    restartDate = restartDate.trim();
 
-                        if (currentDateTime.equals(countdownStart.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")))) {
+                    if (restartDate.matches("\\d{4}-\\d{2}-\\d{2} \\d{2}:\\d{2}:\\d{2}")) {
+                        LocalDateTime scheduled = LocalDateTime.parse(restartDate,
+                                DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+                        ZonedDateTime scheduledZoned = scheduled.atZone(zoneId)
+                                .minusSeconds(countdownTime);
+
+                        if (!now.isBefore(scheduledZoned) && now.isBefore(scheduledZoned.plusSeconds(1))) {
                             startFullCountdown(countdownTime);
                         }
-                    } else if (restartDate.matches("(?i)(mon|tue|wed|thu|fri|sat|sun)\\s+\\d{2}:\\d{2}:\\d{2}")) {
+
+                    } else if (restartDate.matches("(?i)(MON|TUE|WED|THU|FRI|SAT|SUN) \\d{2}:\\d{2}:\\d{2}")) {
                         String[] parts = restartDate.split("\\s+");
-                        String dayPart = parts[0].toUpperCase();
-                        String timePart = parts[1];
-
-                        DayOfWeek scheduledDay = parseDayOfWeek(dayPart);
-                        if (scheduledDay == null) continue;
-
-                        LocalTime scheduledTime = LocalTime.parse(timePart, DateTimeFormatter.ofPattern("HH:mm:ss"));
+                        DayOfWeek scheduledDay = parseDayOfWeek(parts[0]);
+                        LocalTime scheduledTime = LocalTime.parse(parts[1],
+                                DateTimeFormatter.ofPattern("HH:mm:ss"));
                         LocalTime countdownStart = scheduledTime.minusSeconds(countdownTime);
 
-                        if (currentDay == scheduledDay && currentTime.equals(countdownStart.format(DateTimeFormatter.ofPattern("HH:mm:ss")))) {
+                        if (now.getDayOfWeek() == scheduledDay &&
+                                now.toLocalTime().getHour() == countdownStart.getHour() &&
+                                now.toLocalTime().getMinute() == countdownStart.getMinute() &&
+                                now.toLocalTime().getSecond() == countdownStart.getSecond()) {
                             startFullCountdown(countdownTime);
                         }
+
+                    } else if (restartDate.matches("\\d{2}:\\d{2}:\\d{2}")) {
+                        LocalTime scheduledTime = LocalTime.parse(restartDate,
+                                DateTimeFormatter.ofPattern("HH:mm:ss"));
+                        LocalTime countdownStart = scheduledTime.minusSeconds(countdownTime);
+
+                        if (now.toLocalTime().getHour() == countdownStart.getHour() &&
+                                now.toLocalTime().getMinute() == countdownStart.getMinute() &&
+                                now.toLocalTime().getSecond() == countdownStart.getSecond()) {
+                            startFullCountdown(countdownTime);
+                        }
+
                     } else {
-                        LocalTime scheduledTime = LocalTime.parse(restartDate, DateTimeFormatter.ofPattern("HH:mm:ss"));
-                        LocalTime countdownStart = scheduledTime.minusSeconds(countdownTime);
-
-                        if (currentTime.equals(countdownStart.format(DateTimeFormatter.ofPattern("HH:mm:ss")))) {
-                            startFullCountdown(countdownTime);
-                        }
+                        plugin.getLogger().warning("Invalid scheduled restart format: " + restartDate);
                     }
+
                 } catch (Exception e) {
                     plugin.getLogger().warning("Invalid scheduled restart format: " + restartDate);
                 }
@@ -116,6 +128,8 @@ public class ScheduledRestartHandler {
             }
         }
 
+        discordNotifier.sendDiscordMessage(getMessage.apply("messages.restart-message").replace("%time%", String.valueOf(seconds)));
+
         new BukkitRunnable() {
             int timeLeft = seconds;
 
@@ -123,40 +137,21 @@ public class ScheduledRestartHandler {
             public void run() {
                 if (timeLeft <= 0) {
                     Bukkit.broadcastMessage(plugin.getMessage("messages.restart-done"));
-                    if (bossBar != null) {
-                        bossBar.removeAll();
-                        bossBar = null;
-                    }
-                    plugin.triggerRestart();
-                    cancel();
-                    return;
-                }
-
-                int preRestartExecuteTime = plugin.getConfig().getInt("pre-restart-execute-time", 0);
-
-                if (timeLeft <= preRestartExecuteTime && timeLeft > 0) {
-                    Bukkit.broadcastMessage(plugin.getMessage("messages.restart-done"));
-
-                    boolean executePreRestartCommands = plugin.getConfig().getBoolean("execute-pre-restart-commands", true);
-                    if (executePreRestartCommands) {
-                        List<String> preRestartCommands = plugin.getConfig().getStringList("pre-restart-commands");
-                        for (String command : preRestartCommands) {
-                            Bukkit.dispatchCommand(Bukkit.getConsoleSender(), command);
-                        }
-                    }
+                    discordNotifier.sendDiscordMessage(plugin.getMessage("messages.restart-done"));
 
                     if (bossBar != null) {
                         bossBar.removeAll();
                         bossBar = null;
                     }
-
                     plugin.triggerRestart();
                     cancel();
                     return;
                 }
 
                 if (notificationTypes.contains("chat") && countdownTimes.contains(timeLeft)) {
-                    Bukkit.broadcastMessage(plugin.getMessage("messages.restart-message", timeLeft));
+                    String msg = plugin.getMessage("messages.restart-message").replace("%time%", String.valueOf(timeLeft));
+                    Bukkit.broadcastMessage(msg);
+                    discordNotifier.sendDiscordMessage(msg);
                 }
 
                 if (notificationTypes.contains("actionbar")) {
