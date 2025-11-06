@@ -7,7 +7,12 @@ import me.marioneto4ka.restartar.Commands.ARTabCompleter;
 import me.marioneto4ka.restartar.Commands.HelpMessage;
 import me.marioneto4ka.restartar.Discord.DiscordNotifier;
 import me.marioneto4ka.restartar.Function.*;
+import me.marioneto4ka.restartar.Listeners.PlayerJoinHandler;
 import me.marioneto4ka.restartar.Notifications.AdminFeedback;
+import me.marioneto4ka.restartar.Utils.CheckForUpdates;
+import me.marioneto4ka.restartar.Utils.ConfigUpdater;
+import me.marioneto4ka.restartar.Utils.LangManager;
+import me.marioneto4ka.restartar.Utils.ScheduledRestartUtils;
 import net.md_5.bungee.api.ChatMessageType;
 import net.md_5.bungee.api.chat.TextComponent;
 import org.bukkit.Bukkit;
@@ -42,19 +47,27 @@ public final class RestartAR extends JavaPlugin implements Listener {
     public void setTaskId(int id) { taskId = id; }
     public BossBar getBossBar() { return bossBar; }
     public void setBossBar(BossBar bar) { bossBar = bar; }
+    private LangManager langManager;
+    private CheckForUpdates checkForUpdates;
+    private ScheduledRestartUtils scheduledRestartUtils;
 
     @Override
     public void onEnable() {
         saveDefaultConfig();
-        loadLanguage();
+        this.langManager = new LangManager(this);
         this.discordNotifier = new DiscordNotifier(this);
-        this.feedbackNotifier = new AdminFeedback(getConfig());
+        this.feedbackNotifier = new AdminFeedback(this, getConfig());
+        new ConfigUpdater(this).updateConfig();
+        this.checkForUpdates = new CheckForUpdates(this, langManager);
+        this.scheduledRestartUtils = new ScheduledRestartUtils(this, discordNotifier);
+        Bukkit.getPluginManager().registerEvents(new PlayerJoinHandler(feedbackNotifier), this);
 
         boolean scheduledRestartsEnabled = getConfig().getBoolean("enable-scheduled-restarts", false);
         if (scheduledRestartsEnabled) {
             List<String> restartDates = getConfig().getStringList("restart-dates");
-            handleScheduledRestarts(restartDates);
+            scheduledRestartUtils.handleScheduledRestarts(restartDates);
         }
+
         Bukkit.getPluginManager().registerEvents(this, this);
         ARCommand arCommand = new ARCommand(this);
         getCommand("ar").setExecutor(arCommand);
@@ -78,6 +91,13 @@ public final class RestartAR extends JavaPlugin implements Listener {
         } else {
             getLogger().warning("PlaceholderAPI not found. Placeholders will not work.");
         }
+/*
+        Bukkit.getScheduler().runTaskLater(this, () -> {
+            if (discordNotifier != null) {
+                discordNotifier.sendDiscordMessage(langManager.getMessage("messages.discord-server-started"));
+            }
+        }, 20L * 5);
+ */
     }
 
     @Override
@@ -87,61 +107,38 @@ public final class RestartAR extends JavaPlugin implements Listener {
         }
     }
 
-    @EventHandler
-    public void onPlayerJoin(PlayerJoinEvent event) {
-        Player player = event.getPlayer();
-        Bukkit.getScheduler().runTaskLater(this, () -> {
-            feedbackNotifier.send(player);
-        }, 60L);
-    }
+    public void reloadPluginConfig(CommandSender sender) {
+        reloadConfig();
 
-    private void loadLanguage() {
-        String lang = getConfig().getString("language", "en");
-        File langFile = new File(getDataFolder(), "lang/" + lang + ".yml");
+        this.langManager = new LangManager(this);
+        this.discordNotifier = new DiscordNotifier(this);
+        this.feedbackNotifier = new AdminFeedback(this, getConfig());
+        this.checkForUpdates = new CheckForUpdates(this, langManager);
+        this.scheduledRestartUtils = new ScheduledRestartUtils(this, discordNotifier);
 
-        if (!langFile.exists()) {
-            saveResource("lang/" + lang + ".yml", false);
+        boolean scheduledRestartsEnabled = getConfig().getBoolean("enable-scheduled-restarts", false);
+        if (scheduledRestartsEnabled) {
+            List<String> restartDates = getConfig().getStringList("restart-dates");
+            scheduledRestartUtils.handleScheduledRestarts(restartDates);
+            sender.sendMessage("§aScheduled restarts reloaded and rescheduled.");
+        } else {
+            sender.sendMessage("§eScheduled restarts are disabled.");
         }
 
-        langConfig = YamlConfiguration.loadConfiguration(langFile);
-    }
-
-    public void checkForUpdates(CommandSender sender) {
-        UpdateChecker updateChecker = new UpdateChecker(this, UpdateCheckSource.SPIGOT, SPIGOT_RESOURCE_ID);
-
-        updateChecker.onSuccess((senders, latestVersion) -> {
-            new HelpMessage(this).send(sender, latestVersion);
-        }).onFail((senders, exception) -> {
-            sender.sendMessage(getMessage("messages.update-check-failed") + exception.getMessage());
-        });
-
-        updateChecker.checkNow();
-    }
-
-    private ZoneId getPluginZoneId() {
-        String timezone = getConfig().getString("timezone", "").trim();
-        if (timezone.isEmpty()) return ZoneId.systemDefault();
-        try {
-            return ZoneId.of(timezone);
-        } catch (Exception e) {
-            getLogger().warning("Invalid timezone in config: " + timezone + ". Using server default.");
-            return ZoneId.systemDefault();
+        if (Bukkit.getPluginManager().isPluginEnabled("PlaceholderAPI")) {
+            new PlaceholderExpansion(this).register();
+            getLogger().info("PlaceholderAPI integration reloaded.");
         }
+
+        String discordMode = getConfig().getString("discord-mode", "none");
+        getLogger().info("Discord mode set to: " + discordMode);
+
+        saveConfig();
+        sender.sendMessage(langManager.getMessage("messages.config-reloaded"));
+        getLogger().info("Full configuration successfully reloaded.");
     }
 
-    private void handleScheduledRestarts(List<String> restartDates) {
-        DiscordNotifier discordNotifier = new DiscordNotifier(this);
 
-        ZoneId zoneId = getPluginZoneId();
-        new ScheduledRestartHandler(this, this::getMessage, zoneId, discordNotifier)
-                .handleScheduledRestarts(restartDates);
-
-    }
-
-    // Выше не трогай
-    public void sendToDiscord(String msg) {
-        discordNotifier.sendDiscordMessage(msg);
-    }
 
     public void showScheduledRestarts(CommandSender sender) {
         List<String> restartDates = getConfig().getStringList("restart-dates");
@@ -191,15 +188,19 @@ public final class RestartAR extends JavaPlugin implements Listener {
         } catch (IllegalArgumentException e) {
             bossBarColor = BarColor.RED;
         }
-
         if (notificationTypes.contains("bossbar")) {
-            bossBar = Bukkit.createBossBar(getMessage("messages.bossbar-restart-message", seconds),
-                    bossBarColor, BarStyle.SEGMENTED_10, BarFlag.DARKEN_SKY);
+            bossBar = Bukkit.createBossBar(
+                    langManager.getMessage("messages.bossbar-restart-message", seconds),
+                    bossBarColor,
+                    BarStyle.SEGMENTED_10,
+                    BarFlag.DARKEN_SKY
+            );
             bossBar.setProgress(1.0);
             for (Player player : Bukkit.getOnlinePlayers()) {
                 bossBar.addPlayer(player);
             }
         }
+
 
         taskId = new BukkitRunnable() {
             int timeLeft = seconds;
@@ -207,8 +208,8 @@ public final class RestartAR extends JavaPlugin implements Listener {
             @Override
             public void run() {
                 if (timeLeft <= 0) {
-                    Bukkit.broadcastMessage(getMessage("messages.restart-done"));
-                    discordNotifier.sendDiscordMessage(getMessage("messages.discord-restart-done"));
+                    Bukkit.broadcastMessage(langManager.getMessage("messages.restart-done"));
+                    discordNotifier.sendDiscordMessage(langManager.getMessage("messages.discord-restart-done"));
                     if (bossBar != null) {
                         bossBar.removeAll();
                         bossBar = null;
@@ -226,7 +227,7 @@ public final class RestartAR extends JavaPlugin implements Listener {
                 int preRestartExecuteTime = getConfig().getInt("pre-restart-execute-time", 0);
 
                 if (timeLeft <= preRestartExecuteTime && timeLeft > 0) {
-                    Bukkit.broadcastMessage(getMessage("messages.restart-done"));
+                    Bukkit.broadcastMessage(langManager.getMessage("messages.restart-done"));
 
                     boolean executePreRestartCommands = getConfig().getBoolean("execute-pre-restart-commands", true);
 
@@ -248,11 +249,11 @@ public final class RestartAR extends JavaPlugin implements Listener {
                 }
 
                 if (notificationTypes.contains("chat") && countdownTimes.contains(timeLeft)) {
-                    Bukkit.broadcastMessage(getMessage("messages.restart-message", timeLeft));
+                    Bukkit.broadcastMessage(langManager.getMessage("messages.restart-message", timeLeft));
                 }
 
                 if (notificationTypes.contains("actionbar")) {
-                    String actionBarMessage = getMessage("messages.actionbar-restart-message", timeLeft);
+                    String actionBarMessage = langManager.getMessage("messages.actionbar-restart-message", timeLeft);
                     for (Player player : Bukkit.getOnlinePlayers()) {
                         player.spigot().sendMessage(ChatMessageType.ACTION_BAR, TextComponent.fromLegacyText(actionBarMessage));
                     }
@@ -263,14 +264,14 @@ public final class RestartAR extends JavaPlugin implements Listener {
 
                 if (notificationTypes.contains("title") && (titleEverySecond || titleCountdownTimes.contains(timeLeft))) {
                     for (Player player : Bukkit.getOnlinePlayers()) {
-                        String titleMessage = getMessage("messages.title-restart-message", timeLeft);
-                        String subtitleMessage = getMessage("messages.subtitle-restart-message", timeLeft);
+                        String titleMessage = langManager.getMessage("messages.title-restart-message", timeLeft);
+                        String subtitleMessage = langManager.getMessage("messages.subtitle-restart-message", timeLeft);
                         player.sendTitle(titleMessage, subtitleMessage, 10, 40, 10);
                     }
                 }
 
                 if (notificationTypes.contains("bossbar") && bossBar != null) {
-                    bossBar.setTitle(getMessage("messages.bossbar-restart-message", timeLeft));
+                    bossBar.setTitle(langManager.getMessage("messages.bossbar-restart-message", timeLeft));
                     bossBar.setProgress((double) timeLeft / seconds);
                 }
 
@@ -279,19 +280,19 @@ public final class RestartAR extends JavaPlugin implements Listener {
         }.runTaskTimer(this, 0L, 20L).getTaskId();
     }
 
-    public String getMessage(String path) {
-        return langConfig.getString(path, "§c[Error] Message is missing in the config!");
-    }
-
-    public String getMessage(String path, int time) {
-        return getMessage(path).replace("%time%", String.valueOf(time));
-    }
-
-    public String getMessage(String path, int time, String executor) {
-        return getMessage(path, time).replace("%executor%", executor);
-    }
-
     public DiscordNotifier getDiscordNotifier() {
         return discordNotifier;
+    }
+
+    public void sendToDiscord(String msg) {
+        discordNotifier.sendDiscordMessage(msg);
+    }
+
+    public void checkForUpdates(CommandSender sender) {
+        this.checkForUpdates.performUpdateCheck(sender);
+    }
+
+    public LangManager getLangManager() {
+        return langManager;
     }
 }

@@ -4,13 +4,21 @@ import net.md_5.bungee.api.chat.ClickEvent;
 import net.md_5.bungee.api.chat.TextComponent;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
+import org.bukkit.plugin.java.JavaPlugin;
 
 public class AdminFeedback {
 
     private final FileConfiguration config;
+    private final JavaPlugin plugin;
 
-    public AdminFeedback(FileConfiguration config) {
+
+    public AdminFeedback(JavaPlugin plugin, FileConfiguration config) {
+        this.plugin = plugin;
         this.config = config;
+    }
+
+    public JavaPlugin getPlugin() {
+        return plugin;
     }
 
     public void send(Player player) {

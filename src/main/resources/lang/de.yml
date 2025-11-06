@@ -1,20 +1,47 @@
-# %time% - Zeit im Format "HH:mm".
-# %executor% - Wird durch den Namen des Spielers ersetzt, der den Befehl ausgeführt hat.
+# %time%     - Zeit im Format "HH:mm" oder Sekunden bis zum Neustart
+# %executor% - Name des Spielers, der den Befehl ausgeführt hat
+
 messages:
+  # Chatnachrichten für Standardbenachrichtigungen
   restart-message: "§6⚠ Der Server wird in §c%time% §6Sekunden neu gestartet!"
-  restart-started: "§e⏳ Der Countdown zum Neustart hat begonnen! Zeit: §c%time% §eSek."
-  restart-cancelled: "§c❌ Neustart abgebrochen!"
+  restart-started: "§e⏳ Der Neustart-Countdown hat begonnen! Zeit: §c%time% §eSek."
+  restart-cancelled: "§c❌ Der Neustart wurde abgebrochen!"
   restart-done: "§4🔄 Der Server wird neu gestartet!"
+
+  # Befehlsverwendung
   usage-ar: "§eVerwendung: /ar <cancel | reload>"
   no-permission: "§4🚫 Du hast keine Berechtigung, diesen Befehl auszuführen!"
-  no-active-restart: "§c❗ Es gibt keinen geplanten Neustart!"
+  no-active-restart: "§c❗ Es sind derzeit keine geplanten Neustarts aktiv!"
   config-reloaded: "§a✅ Konfiguration erfolgreich neu geladen!"
-  actionbar-restart-message: "§e⏳ Neustart in §c%time% §eSekunden!"
+
+  # ActionBar- und BossBar-Benachrichtigungen
+  actionbar-restart-message: "§e⏳ Neustart in §c%time% §eSek!"
   bossbar-restart-message: "Neustart in %time% Sekunden."
+
+  # Geplante Neustarts
   scheduled-restart: "⚠️ Der Server wird in %time% Sekunden neu gestartet!"
+
+  # Titelbenachrichtigungen
   title-restart-message: "§4⚠ Neustart in %time% Sekunden!"
   subtitle-restart-message: "§e⏳ Speichere jetzt deinen Fortschritt!"
+
+  # Discord-Nachrichten
   discord-restart-message: "⚠️ Der Server wird in %time% Sekunden neu gestartet!"
   discord-restart-done: "✅ Der Server wurde erfolgreich neu gestartet!"
-  restart-now: "§cDer Server-Neustart wurde sofort von Spieler %executor% ausgelöst!"
-  discord-restart-now: "**Der Server wird sofort neu gestartet!** Ausgeführt von Spieler `%executor%`"
+  discord-restart-now: "**Der Server wird sofort neu gestartet!** Initiiert von `%executor%`"
+
+  # Discord-Webhook-Nachrichten
+  discord-webhook-title: "Achtung!"
+  discord-webhook-description: "🔄 **Der Server wird in** %time% **neu gestartet.** \n\nBitte speichere deinen Fortschritt."
+  discord-webhook-footer: "⚙ Neustart wird von RestartAR ausgeführt"
+
+  # Serverstart-Nachrichten
+  discord-server-started: "✅ Der Server wurde erfolgreich gestartet!"
+
+  # Zeitangaben für Discord und Plugin
+  hours: "Std"     # Stunden
+  minutes: "Min"   # Minuten
+  seconds: "Sek"   # Sekunden
+
+  # Sofortiger Neustart über Befehl
+  restart-now: "§cServerneustart wurde sofort von %executor% initiiert!"

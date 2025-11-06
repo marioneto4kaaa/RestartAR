@@ -96,6 +96,5 @@ discord-avatar-url: "https://your.avatar.url"
 discord-thumbnail-url: "https://your.thumbnail.url"
 discord-footer-icon-url: "https://your.footer.icon.url"
 discord-username: "YourCustomUsername"
-discord-footer-text: "YourCustomFooterText"
 
 last-restart: "0"

@@ -2,6 +2,7 @@ package me.marioneto4ka.restartar.Commands;
 
 import me.marioneto4ka.restartar.Function.RestartManager;
 import me.marioneto4ka.restartar.RestartAR;
+import me.marioneto4ka.restartar.Utils.LangManager;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
@@ -13,25 +14,26 @@ import java.util.*;
 public class ARCommand implements CommandExecutor {
 
     private final RestartAR plugin;
-
     private final RestartManager manager;
+    private final LangManager lang;
 
     public ARCommand(RestartAR plugin) {
         this.plugin = plugin;
         this.manager = new RestartManager(plugin, plugin.getDiscordNotifier());
+        this.lang = new LangManager(plugin);
     }
 
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
         if (args.length == 0) {
-            sender.sendMessage(plugin.getMessage("messages.usage-ar"));
+            sender.sendMessage(lang.getMessage("messages.usage-ar"));
             return true;
         }
 
         switch (args[0].toLowerCase()) {
             case "restart":
                 if (!sender.hasPermission("restartar.admin")) {
-                    sender.sendMessage(plugin.getMessage("messages.no-permission"));
+                    sender.sendMessage(lang.getMessage("messages.no-permission"));
                     return true;
                 }
 
@@ -40,14 +42,14 @@ public class ARCommand implements CommandExecutor {
                     try {
                         time = parseTimeArgument(args[1]);
                     } catch (IllegalArgumentException e) {
-                        sender.sendMessage(plugin.getMessage("messages.invalid-time"));
+                        sender.sendMessage(lang.getMessage("messages.invalid-time"));
                         return true;
                     }
                 }
 
                 plugin.startCountdown(time);
-                sender.sendMessage(plugin.getMessage("messages.restart-started", time));
-                plugin.sendToDiscord(plugin.getMessage("messages.discord-restart-message", time));
+                sender.sendMessage(lang.getMessage("messages.restart-started", time));
+                plugin.sendToDiscord(lang.getMessage("messages.discord-restart-message", time));
                 break;
 
             case "cancel":
@@ -57,14 +59,18 @@ public class ARCommand implements CommandExecutor {
                 break;
 
             case "reload":
-                plugin.reloadConfig();
-                sender.sendMessage(plugin.getMessage("messages.config-reloaded"));
+                if (!sender.hasPermission("restartar.admin")) {
+                    sender.sendMessage(lang.getMessage("messages.no-permission"));
+                    return true;
+                }
+
+                plugin.reloadPluginConfig(sender);
                 break;
+
 
             case "help":
                 plugin.checkForUpdates(sender);
                 break;
-
 
             case "disablefeedback":
                 if (sender instanceof Player) {
@@ -83,7 +89,7 @@ public class ARCommand implements CommandExecutor {
                 break;
 
             default:
-                sender.sendMessage(plugin.getMessage("messages.usage-ar"));
+                sender.sendMessage(lang.getMessage("messages.usage-ar"));
                 break;
         }
         return true;

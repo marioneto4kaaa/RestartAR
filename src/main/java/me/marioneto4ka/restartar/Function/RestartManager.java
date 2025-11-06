@@ -2,19 +2,21 @@ package me.marioneto4ka.restartar.Function;
 
 import me.marioneto4ka.restartar.Discord.DiscordNotifier;
 import me.marioneto4ka.restartar.RestartAR;
+import me.marioneto4ka.restartar.Utils.LangManager;
 import org.bukkit.Bukkit;
 import org.bukkit.boss.BossBar;
 import org.bukkit.entity.Player;
 
 public class RestartManager {
 
-
+    private final LangManager lang;
     private final RestartAR plugin;
     private final DiscordNotifier discordNotifier;
 
     public RestartManager(RestartAR plugin, DiscordNotifier discordNotifier) {
         this.plugin = plugin;
         this.discordNotifier = discordNotifier;
+        this.lang = new LangManager(plugin);
     }
 
     public void cancelRestart(Player sender) {
@@ -28,15 +30,15 @@ public class RestartManager {
                 plugin.setBossBar(null);
             }
 
-            sender.sendMessage(plugin.getMessage("messages.restart-cancelled"));
+            sender.sendMessage(lang.getMessage("messages.restart-cancelled"));
         } else {
-            sender.sendMessage(plugin.getMessage("messages.no-active-restart"));
+            sender.sendMessage(lang.getMessage("messages.no-active-restart"));
         }
     }
 
     public void toggleFeedback(Player player) {
         if (!player.hasPermission("restartar.admin")) {
-            player.sendMessage(plugin.getMessage("messages.no-permission"));
+            player.sendMessage(lang.getMessage("messages.no-permission"));
             return;
         }
 
@@ -55,15 +57,15 @@ public class RestartManager {
 
     public void restartNow(Player player) {
         if (!player.hasPermission("restartar.admin")) {
-            player.sendMessage(plugin.getMessage("messages.no-permission"));
+            player.sendMessage(lang.getMessage("messages.no-permission"));
             return;
         }
 
-        String message = plugin.getMessage("messages.restart-now", 0, player.getName());
+        String message = lang.getMessage("messages.restart-now", 0, player.getName());
         player.sendMessage(message);
 
         // Используем discordNotifier напрямую
-        String discordMessage = plugin.getMessage("messages.discord-restart-now", 0, player.getName());
+        String discordMessage = lang.getMessage("messages.discord-restart-now", 0, player.getName());
         if (discordNotifier != null) {
             discordNotifier.sendDiscordMessage(discordMessage);
         }

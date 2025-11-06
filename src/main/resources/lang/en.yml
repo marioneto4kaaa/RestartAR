@@ -1,20 +1,47 @@
-# %time% - Time in the format "HH:mm".
-# %executor% - Replaced with the name of the player who executed the command.
+# %time%     - Time in format "HH:mm" or seconds until restart
+# %executor% - Name of the player who initiated the command
+
 messages:
+  # Chat messages for standard notifications
   restart-message: "§6⚠ The server will restart in §c%time% §6seconds!"
-  restart-started: "§e⏳ Countdown to restart started! Time: §c%time% §esec."
-  restart-cancelled: "§c❌ Restart canceled!"
+  restart-started: "§e⏳ Restart countdown started! Time: §c%time% §esec."
+  restart-cancelled: "§c❌ Restart has been cancelled!"
   restart-done: "§4🔄 The server is restarting!"
+
+  # Command usage
   usage-ar: "§eUsage: /ar <cancel | reload>"
-  no-permission: "§4🚫 You do not have permission to use this command!"
-  no-active-restart: "§c❗ No scheduled restart at the moment!"
-  config-reloaded: "§a✅ Config successfully reloaded!"
+  no-permission: "§4🚫 You don't have permission to perform this command!"
+  no-active-restart: "§c❗ There are no active scheduled restarts!"
+  config-reloaded: "§a✅ Configuration successfully reloaded!"
+
+  # ActionBar and BossBar notifications
   actionbar-restart-message: "§e⏳ Restart in §c%time% §esec!"
-  bossbar-restart-message: "Restarting in %time% seconds."
+  bossbar-restart-message: "Restart in %time% seconds."
+
+  # Scheduled restarts
   scheduled-restart: "⚠️ The server will restart in %time% seconds!"
-  title-restart-message: "§4⚠ Restarting in %time% seconds!"
+
+  # Title notifications
+  title-restart-message: "§4⚠ Restart in %time% seconds!"
   subtitle-restart-message: "§e⏳ Save your progress now!"
+
+  # Discord messages
   discord-restart-message: "⚠️ The server will restart in %time% seconds!"
   discord-restart-done: "✅ The server has been successfully restarted!"
+  discord-restart-now: "**The server is restarting immediately!** Initiated by `%executor%`"
+
+  # Discord Webhook messages
+  discord-webhook-title: "Attention!"
+  discord-webhook-description: "🔄 **The server will restart in** %time% \n\nPlease save your progress."
+  discord-webhook-footer: "⚙ Restart is being executed by RestartAR"
+
+  # Server startup messages
+  discord-server-started: "✅ The server has successfully started!"
+
+  # Time unit labels for display in Discord and plugin
+  hours: "h"     # Hours
+  minutes: "m"   # Minutes
+  seconds: "s"   # Seconds
+
+  # Immediate restart via command
   restart-now: "§cServer restart initiated immediately by %executor%!"
-  discord-restart-now: "**Server is restarting immediately!** Triggered by `%executor%`"

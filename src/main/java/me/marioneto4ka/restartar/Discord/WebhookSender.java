@@ -1,5 +1,6 @@
 package me.marioneto4ka.restartar.Discord;
 
+import me.marioneto4ka.restartar.Utils.LangManager;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
@@ -16,8 +17,11 @@ public class WebhookSender implements DiscordMessageSender {
     private final String footerText;
     private final String footerIconUrl;
     private final String thumbnailUrl;
+    private final LangManager langManager;
 
-    public WebhookSender(Logger logger, String webhookUrl, String username, String avatarUrl, String footerText, String footerIconUrl, String thumbnailUrl) {
+    public WebhookSender(Logger logger, String webhookUrl, String username, String avatarUrl,
+                         String footerText, String footerIconUrl, String thumbnailUrl,
+                         LangManager langManager) {
         this.logger = logger;
         this.webhookUrl = webhookUrl;
         this.username = username;
@@ -25,11 +29,26 @@ public class WebhookSender implements DiscordMessageSender {
         this.footerText = footerText;
         this.footerIconUrl = footerIconUrl;
         this.thumbnailUrl = thumbnailUrl;
+        this.langManager = langManager;
+    }
+
+    private String escapeJson(String text) {
+        if (text == null) return "";
+        return text
+                .replace("\\", "\\\\")
+                .replace("\"", "\\\"")
+                .replace("\n", "\\n")
+                .replace("\r", "\\r")
+                .replace("\t", "\\t");
     }
 
     @Override
     public void sendMessage(String restartTime) {
         try {
+            String title = escapeJson(langManager.getMessage("messages.discord-webhook-title"));
+            String description = escapeJson(langManager.getMessage("messages.discord-webhook-description").replace("%time%", restartTime));
+            String footer = escapeJson(langManager.getMessage("messages.discord-webhook-footer"));
+
             URL url = new URL(webhookUrl);
             HttpURLConnection connection = (HttpURLConnection) url.openConnection();
             connection.setRequestMethod("POST");
@@ -37,14 +56,14 @@ public class WebhookSender implements DiscordMessageSender {
             connection.setRequestProperty("Content-Type", "application/json");
 
             String jsonPayload = "{"
-                    + "\"username\":\"" + username + "\","
-                    + "\"avatar_url\":\"" + avatarUrl + "\","
+                    + "\"username\":\"" + escapeJson(username) + "\","
+                    + "\"avatar_url\":\"" + escapeJson(avatarUrl) + "\","
                     + "\"embeds\":[{"
-                    + "    \"title\":\"Warning!\","
-                    + "    \"description\":\"🔄 **The server will restart at**\\n" + restartTime + "\\n\\nPlease save your progress.\","
+                    + "    \"title\":\"" + title + "\","
+                    + "    \"description\":\"" + description + "\","
                     + "    \"color\":16711680,"
-                    + "    \"thumbnail\":{\"url\":\"" + thumbnailUrl + "\"},"
-                    + "    \"footer\":{\"text\":\"" + footerText + "\",\"icon_url\":\"" + footerIconUrl + "\"}"
+                    + "    \"thumbnail\":{\"url\":\"" + escapeJson(thumbnailUrl) + "\"},"
+                    + "    \"footer\":{\"text\":\"" + footer + "\",\"icon_url\":\"" + escapeJson(footerIconUrl) + "\"}"
                     + "}]"
                     + "}";
 
