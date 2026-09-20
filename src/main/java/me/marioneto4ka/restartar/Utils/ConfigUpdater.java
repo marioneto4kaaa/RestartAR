@@ -14,7 +14,6 @@ public class ConfigUpdater {
     public ConfigUpdater(JavaPlugin plugin) {
         this.plugin = plugin;
     }
-
     public void updateConfig() {
         FileConfiguration config = plugin.getConfig();
         File defaultConfigFile = new File(plugin.getDataFolder(), "config.yml");
@@ -34,7 +33,6 @@ public class ConfigUpdater {
             plugin.getLogger().warning("Failed to save updated config.yml: " + e.getMessage());
         }
     }
-
     private void addMissingKeys(FileConfiguration source, FileConfiguration target) {
         Set<String> keys = source.getKeys(true);
         for (String key : keys) {
